@@ -1,0 +1,166 @@
+{
+  "name": "graphql-client",
+  "version": "0.1.0",
+  "description": "Experimental small GraphQL client adaptable to HTTP/1.x or HTTP/2.x",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "npm-run-all build:*",
+    "build:rollup": "rollup -c rollup.config.js",
+    "build:flow": "cp build/stub/flow.js dist/esm/index.js.flow && cp build/stub/flow.js dist/cjs/index.js.flow",
+    "coverage": "nyc --reporter=html ava --verbose",
+    "clean": "rm -rf dist",
+    "distclean": "rm -rf package-lock.json node_modules dist",
+    "flow": "flow check",
+    "prepack": "npm run clean && npm run test && npm run build",
+    "test": "npm-run-all test:*",
+    "test:flow": "flow status",
+    "test:ava": "ava --verbose",
+    "test:xo": "xo",
+    "watch": "nodemon -w src -w test --exec \"npm run -q test || true\""
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@ava/babel": "^1.0.1",
+    "@babel/plugin-transform-destructuring": "^7.9.5",
+    "@babel/plugin-transform-flow-strip-types": "^7.9.0",
+    "@babel/plugin-transform-for-of": "^7.9.0",
+    "@babel/plugin-transform-spread": "^7.8.3",
+    "@babel/preset-env": "^7.9.5",
+    "ava": "^3.7.1",
+    "babel-plugin-transform-async-to-promises": "^0.8.15",
+    "esm": "^3.2.25",
+    "flow-bin": "^0.123.0",
+    "graphql": "^15.0.0",
+    "nodemon": "^2.0.3",
+    "npm-run-all": "^4.1.5",
+    "nyc": "^15.0.1",
+    "rollup": "^2.6.1",
+    "rollup-plugin-auto-external": "^2.0.0",
+    "rollup-plugin-babel": "^4.4.0",
+    "rollup-plugin-gzip": "^2.4.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-terser": "^5.3.0",
+    "xo": "^0.29.1"
+  },
+  "xo": {
+    "extends": [
+      "xo-flow"
+    ],
+    "rules": {
+      "ava/use-test": "off",
+      "brace-style": [
+        "error",
+        "stroustrup"
+      ],
+      "comma-dangle": [
+        "error",
+        {
+          "arrays": "always-multiline",
+          "objects": "always-multiline",
+          "imports": "always-multiline",
+          "exports": "always-multiline",
+          "functions": "never"
+        }
+      ],
+      "flowtype/array-style-complex-type": [
+        "error",
+        "verbose"
+      ],
+      "flowtype/array-style-simple-type": [
+        "error",
+        "verbose"
+      ],
+      "flowtype/delimiter-dangle": [
+        "error",
+        "always-multiline"
+      ],
+      "flowtype/newline-after-flow-annotation": [
+        "error",
+        "always"
+      ],
+      "flowtype/require-types-at-top": "warn",
+      "flowtype/require-valid-file-annotation": [
+        "error",
+        "always",
+        {
+          "annotationStyle": "block"
+        }
+      ],
+      "flowtype/require-return-type": [
+        "error",
+        "always",
+        {
+          "annotateUndefined": "always"
+        }
+      ],
+      "flowtype/type-import-style": [
+        "error",
+        "declaration"
+      ],
+      "import/no-extraneous-dependencies": [
+        "error",
+        {
+          "packageDir": [
+            "."
+          ]
+        }
+      ],
+      "import/no-unassigned-import": [
+        "error",
+        {
+          "allow": [
+            "**/*.css",
+            "**/*.scss"
+          ]
+        }
+      ],
+      "import/no-unresolved": "off",
+      "import/order": "off",
+      "lines-between-class-members": [
+        "error",
+        "always",
+        {
+          "exceptAfterSingleLine": true
+        }
+      ],
+      "max-len": [
+        "error",
+        {
+          "code": 100,
+          "comments": 80,
+          "ignoreStrings": true
+        }
+      ],
+      "no-case-declarations": "off",
+      "no-labels": "off",
+      "no-unused-vars": [
+        "error",
+        {
+          "varsIgnorePattern": "^React$"
+        }
+      ],
+      "no-useless-constructor": "off",
+      "object-curly-spacing": [
+        "error",
+        "always"
+      ],
+      "quotes": [
+        "error",
+        "double",
+        {
+          "allowTemplateLiterals": true
+        }
+      ],
+      "unicorn/catch-error-name": [
+        "error",
+        {
+          "name": "e"
+        }
+      ],
+      "unicorn/prefer-includes": "off",
+      "valid-jsdoc": "off"
+    },
+    "space": 2
+  }
+}
