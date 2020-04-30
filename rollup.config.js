@@ -4,6 +4,8 @@ import nodeResolve from "rollup-plugin-node-resolve";
 import gzipPlugin from "rollup-plugin-gzip";
 import { terser } from "rollup-plugin-terser";
 
+const COMPRESS = true;
+
 export default {
   input: "src/index.js",
   output: [
@@ -18,7 +20,7 @@ export default {
       format: "cjs",
     },
   ],
-  preserveModules: false,
+  preserveModules: !COMPRESS,
   plugins: [
     autoExternal(),
     nodeResolve(),
@@ -28,6 +30,7 @@ export default {
     }),
     terser({
       parse: {
+
       },
       compress: {
 
@@ -35,7 +38,7 @@ export default {
       mangle: {
       },
       output: {
-        beautify: true,
+        beautify: !COMPRESS,
       },
       ecma: 5,
       module: true,

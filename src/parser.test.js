@@ -14,11 +14,13 @@ test("Fragments with variables", t => {
     }
 
     query ($param: String!) {
-      ...Foo
+      here {
+        ...Foo
+      }
     }
-  `);
+  `, { noLocation: true });
 
-  const r = extractDefinitionVariablesAndRootFields(doc, "_pre_");
+  const { operation, fragments, rootFields, variableDefinitions } = extractDefinitionVariablesAndRootFields(doc, "_pre_");
 
-  console.log(r);
+  console.log(operation.toJSON());
 });
