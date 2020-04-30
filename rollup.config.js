@@ -1,4 +1,3 @@
-import autoExternal from "rollup-plugin-auto-external";
 import babelPlugin from "rollup-plugin-babel";
 import nodeResolve from "rollup-plugin-node-resolve";
 import gzipPlugin from "rollup-plugin-gzip";
@@ -22,7 +21,6 @@ export default {
   ],
   preserveModules: !COMPRESS,
   plugins: [
-    autoExternal(),
     nodeResolve(),
     babelPlugin({
       babelrc: false,
@@ -49,5 +47,8 @@ export default {
         level: 9,
       },
     }),
+  ],
+  external: [
+    "graphql/language",
   ],
 };
