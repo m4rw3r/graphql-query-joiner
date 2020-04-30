@@ -12,6 +12,7 @@ export default {
     "**/*.test.js",
   ],
   powerAssert: true,
+  snapshotDir: "snapshots",
   require: [
     "esm",
   ],

@@ -24,7 +24,7 @@ export default {
     nodeResolve(),
     babelPlugin({
       babelrc: false,
-      configFile: "./babel.config.js",
+      configFile: "./babel.config.cjs",
     }),
     terser({
       parse: {

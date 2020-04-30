@@ -15,13 +15,13 @@ import type {
 
 import { Kind, parse, print, visit } from "graphql/language";
 
+import { verifyDocument, extractDefinitionVariablesAndRootFields } from "./parser";
+
 type Batch = {
-  aliasCount: number,
   aliasMap: { [newAlias:string]: { operationId: number, name: string } },
   definitions: Array<ExecutableDefinitionNode>,
   parameters: { [k:string]: mixed },
   operation: OperationTypeNode,
-  variableCount: number,
   variables: { [k:string]: VariableDefinitionNode },
 };
 
@@ -30,12 +30,10 @@ type Query<P: {}, R> = string;
 type TypeofQueryParametrers<+Q: Query<any, any>> = $Call<<T, Q: Query<any, T>>(Q) => T, Q>;
 
 export const createBatch = (operation: OperationTypeNode): Batch => ({
-  aliasCount: 0,
   aliasMap: {},
   definitions: [],
   parameters: {},
   operation,
-  variableCount: 0,
   variables: {},
 });
 
@@ -49,113 +47,43 @@ export const addQuery = <Q: Query<any, any>>(
 
   // TODO: Maybe use document nodes directly to avoid parsing them?
   const document: DocumentNode = parse(query);
-  // New alias -> old alias
-  const aliases: { [k:string]: string } = {};
-  const varDefs: { [k:string]: VariableDefinitionNode } = {};
 
-  const doc: DocumentNode = visit(document, {
-    VariableDefinition(definition): void {
-      const { variable } = definition;
-      const { name } = variable;
+  const { definitions, rootFields, variableDefinitions } = extractDefinitionVariablesAndRootFields(document, "_" + batch.definitions.length + "_");
 
-      if (!parameters.hasOwnProperty(name.value)) {
-        throw new Error(`Missing parameter '${name.value}' in call to '${query}'.`);
-      }
-
-      varDefs[definition.variable.name.value] = {
-        ...definition,
-        variable: {
-          ...variable,
-          name: {
-            kind: Kind.NAME,
-            value: `__v${++batch.variableCount}`,
-          },
-        },
-      };
-    },
-    Variable(variable): VariableNode {
-      const { name: { value } } = variable
-
-      if( ! varDefs[value]) {
-        throw new Error(`Definition of variable '${value}' is missing in query '${query}'.`);
-      }
-
-      return {
-        ...variable,
-        name: {
-          kind: Kind.NAME,
-          value: varDefs[value].variable.name.value,
-        },
-      };
-    },
-    OperationDefinition(node: OperationDefinitionNode): OperationDefinitionNode {
-      if (node.operation !== batch.operation) {
-        throw new Error(`Batch-operation type '${batch.operation}' does not match operation type '${node.operation}' in query '${query}'.`);
-      }
-
-      return {
-        ...node,
-        selectionSet: {
-          ...node.selectionSet,
-          selections: node.selectionSet.selections.map(sel => {
-            if (sel.kind !== Kind.FIELD) {
-              throw new Error(`Non-field selection found in root operation in query '${query}'.`);
-            }
-
-            const name = sel.alias ? sel.alias.value : sel.name.value;
-            const alias = {
-              kind: Kind.NAME,
-              value: `__a${++batch.aliasCount}`,
-            };
-
-            aliases[alias.value] = name;
-
-            return {
-              ...sel,
-              alias,
-            };
-          }),
-        },
-      };
-    }
-  });
-
+  // We have to validate all before we assign to avoid having the Batch end up
+  // in an inconsistent state
   for (const k in parameters) {
-    const def = varDefs[k];
-
-    if(def) {
-      batch.parameters[def.variable.name.value] = parameters[k];
-    }
-    else {
+    if (!variableDefinitions[k]) {
       throw new Error(`Extra parameter '${k}' supplied to query '${query}'.`);
     }
   }
 
-  for (const k in varDefs) {
-    const def = varDefs[k];
+  for (const k in parameters) {
+    const def = variableDefinitions[k];
+
+    if(def) {
+      batch.parameters[def.variable.name.value] = parameters[k];
+    }
+  }
+
+  for (const k in variableDefinitions) {
+    const def = variableDefinitions[k];
 
     batch.variables[def.variable.name.value] = def;
   }
 
-  batch.definitions = doc.definitions.reduce((defs, node) => {
-    switch (node.kind) {
-      case Kind.OPERATION_DEFINITION:
-        for (const k in aliases) {
-          batch.aliasMap[k] = {
-            operationId: defs.length,
-            name: aliases[k],
-          };
-        }
-
-        // Fallthrough
-      case Kind.FRAGMENT_DEFINITION:
-        defs.push(node);
-
-        break;
-
-      default:
-        throw new Error(`Non-executable definition node found in '${query}'.`);
+  batch.definitions = definitions.reduce((defs, node) => {
+    if (node.kind === Kind.OPERATION_DEFINITION) {
+      for (const k in rootFields) {
+        batch.aliasMap[k] = {
+          // TODO: Disregard fragments when mapping operations
+          operationId: defs.length,
+          name: rootFields[k],
+        };
+      }
     }
+
+    defs.push(node);
 
     return defs;
   }, batch.definitions);
@@ -198,4 +126,4 @@ export const stringify = ({ definitions, variables }: Batch): string => {
 };
 
 export const getRequestBody = (batch: Batch) => {
-}
+};
