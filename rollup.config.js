@@ -1,3 +1,5 @@
+/* @flow */
+
 import babelPlugin from "rollup-plugin-babel";
 import nodeResolve from "rollup-plugin-node-resolve";
 import gzipPlugin from "rollup-plugin-gzip";
