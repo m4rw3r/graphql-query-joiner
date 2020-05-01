@@ -23,7 +23,7 @@ export type Request = {
   +fragments: $ReadOnlyArray<FragmentDefinitionNode>,
   // Map from new alias to old alias
   +aliases: Map<string, string>,
-  +variables: Map<string, VariableDefinitionNode>,
+  +variables: Array<VariableDefinitionNode>,
   // Actual parameters supplied to this request
   // TODO: Maybe move to a separate part not concerned with the rest?
   +parameters: { [k: string]: mixed },
@@ -34,6 +34,7 @@ export const createRequest = <Q: Query<any, any>>(
   query: Q,
   parameters: TypeOfQueryParameters<Q>
 ): Request => {
+  const renamed = {};
   const {
     fields,
     fragments,
@@ -42,8 +43,12 @@ export const createRequest = <Q: Query<any, any>>(
     variables,
   } = extractDefinitionVariablesAndRootFields(query, prefix);
 
-  for (const k of variables.keys()) {
-    if (!Object.prototype.hasOwnProperty.call(parameters, k)) {
+  for (const [k, v] of variables) {
+    if (Object.prototype.hasOwnProperty.call(parameters, k)) {
+      // Rename to match the variables
+      renamed[v.variable.name.value] = parameters[k];
+    }
+    else {
       throw new Error(`Missing parameter '${k}' in call to '${print(query)}'.`);
     }
   }
@@ -62,10 +67,8 @@ export const createRequest = <Q: Query<any, any>>(
     fragments,
     // Aliases are unique
     aliases,
-    // TODO: Rename variables to not conflict on join
-    variables,
-    // TODO: Rename parameters to not conflict on join
-    parameters,
+    variables: Array.from(variables.values()),
+    parameters: renamed,
   };
 };
 

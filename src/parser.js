@@ -63,7 +63,7 @@ export const extractOperationVariablesAndRootFields = (
                 ...sel,
                 alias: {
                   kind: Kind.NAME,
-                  value: prefix + "a" + aliases.size,
+                  value: prefix + "i" + aliases.size,
                 },
               };
 
