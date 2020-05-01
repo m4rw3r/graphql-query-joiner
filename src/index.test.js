@@ -3,6 +3,7 @@
 import test from "ava";
 import { parse } from "graphql";
 import { addQuery, createBatch, stringify } from ".";
+import { joinRequests } from "./query";
 
 test("Foo", t => {
   const b = createBatch("query");
@@ -19,7 +20,6 @@ test("Foo", t => {
     }
   }`, { noLocation: true }), { param: "lol" });
 
+  t.snapshot(joinRequests(b.requests));
   t.snapshot(stringify(b));
-  t.snapshot(b.variables);
-  t.snapshot(b.parameters);
 });
