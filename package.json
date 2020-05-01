@@ -52,6 +52,18 @@
     "extends": [
       "xo-flow"
     ],
+    "overrides": [
+      {
+        "files": "src/*.test.js",
+        "rules": {
+          "flowtype/require-parameter-type": "off",
+          "flowtype/require-return-type": "off",
+          "flowtype/no-unused-expressions": "off",
+          "no-unused-expressions": "off",
+          "quote-props": "off"
+        }
+      }
+    ],
     "rules": {
       "ava/use-test": "off",
       "brace-style": [
