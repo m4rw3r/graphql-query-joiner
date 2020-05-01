@@ -21,8 +21,6 @@ module.exports = {
     ["@babel/plugin-transform-destructuring", { loose: true }],
     // Ensure we only compile for arrays to avoid unnecessary shims
     ["@babel/plugin-transform-spread", { loose: true }],
-    // Ensure we only compile for arrays to avoid unnecessary shims
-    ["@babel/plugin-transform-for-of", { assumeArray: true }],
     // Mainly for tests
     ["babel-plugin-transform-async-to-promises", { hoist: true }],
   ],
