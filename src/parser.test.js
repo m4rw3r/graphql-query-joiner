@@ -20,7 +20,5 @@ test("Fragments with variables", t => {
     }
   `, { noLocation: true });
 
-  const { operation, fragments, rootFields, variableDefinitions } = extractDefinitionVariablesAndRootFields(doc, "_pre_");
-
-  console.log(operation.toJSON());
+  t.snapshot(extractDefinitionVariablesAndRootFields(doc, "_pre_"));
 });

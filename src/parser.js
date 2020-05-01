@@ -16,56 +16,36 @@ import type {
 
 import { Kind, print, visit } from "graphql/language";
 
-export type AliasMap = { [newAlias: string]: string };
-export type FragmentMap = { [fragmentName: string]: FragmentDefinitionNode };
-export type VariableMap = { [parameterName: string]: VariableDefinitionNode };
-
-/**
- * Verifies the document has the correct operation type and parameters.
- */
-export const verifyDocument = (
-  doc: DocumentNode,
-  operation: OperationTypeNode,
-  parameters: {}
-): void => {
-  visit(doc, {
-    VariableDefinition({ variable: { name: { value } } }: VariableDefinitionNode): void {
-      if (Object.prototype.hasOwnProperty.call(parameters, value)) {
-        throw new Error(`Missing parameter '${value}' in call to '${print(doc)}'.`);
-      }
-    },
-    OperationDefinition(node: OperationDefinitionNode): void {
-      if (node.operation !== operation) {
-        throw new Error(`Batch-operation type '${operation}' does not match operation type '${node.operation}' in query '${print(doc)}'.`);
-      }
-    },
-  });
-};
+export type AliasMap = Map<string, string>;
+export type FragmentMap = Map<string, FragmentDefinitionNode>;
+export type VariableMap = Map<string, VariableDefinitionNode>;
 
 export const extractOperationVariablesAndRootFields = (
   doc: DocumentNode,
   operation: OperationDefinitionNode,
   prefix: string
 ): {
-  operation: OperationDefinitionNode,
-  rootFields: AliasMap,
-  variableDefinitions: VariableMap,
+  operation: OperationTypeNode,
+  fields: Array<FieldNode>,
+  aliases: AliasMap,
+  variables: VariableMap,
 } => {
-  const rootFields: AliasMap = {};
-  const variableDefinitions: VariableMap = {};
+  const aliases: AliasMap = new Map();
+  const fields: Array<FieldNode> = [];
+  const variables: VariableMap = new Map();
 
   operation = visit(operation, {
     VariableDefinition(definition: VariableDefinitionNode): void {
-      variableDefinitions[definition.variable.name.value] = {
+      variables.set(definition.variable.name.value, {
         ...definition,
         variable: {
           ...definition.variable,
           name: {
             kind: Kind.NAME,
-            value: prefix + "v" + Object.keys(variableDefinitions).length,
+            value: prefix + "v" + variables.size,
           },
         },
-      };
+      });
     },
     OperationDefinition(node: OperationDefinitionNode): OperationDefinitionNode {
       return {
@@ -79,17 +59,18 @@ export const extractOperationVariablesAndRootFields = (
               }
 
               const name = sel.alias ? sel.alias.value : sel.name.value;
-              const alias = {
-                kind: Kind.NAME,
-                value: prefix + "a" + Object.keys(rootFields).length,
-              };
-
-              rootFields[alias.value] = name;
-
-              return {
+              const field = {
                 ...sel,
-                alias,
+                alias: {
+                  kind: Kind.NAME,
+                  value: prefix + "a" + aliases.size,
+                },
               };
+
+              aliases.set(field.alias.value, name);
+              fields.push(field);
+
+              return field;
             }
           ),
         },
@@ -98,9 +79,10 @@ export const extractOperationVariablesAndRootFields = (
   });
 
   return {
-    operation,
-    rootFields,
-    variableDefinitions,
+    operation: operation.operation,
+    fields,
+    aliases,
+    variables,
   };
 };
 
@@ -113,8 +95,9 @@ export const renameVariablesAndFragments = <T: ASTNode>(
   return visit(node, {
     FragmentSpread(spread: FragmentSpreadNode): FragmentSpreadNode {
       const { name: { value } } = spread;
+      const fragment = fragments.get(value);
 
-      if (!fragments[value]) {
+      if (!fragment) {
         throw new Error(`Definition of fragment '${value}' is missing in query '${print(doc)}'.`);
       }
 
@@ -122,14 +105,15 @@ export const renameVariablesAndFragments = <T: ASTNode>(
         ...spread,
         name: {
           kind: Kind.NAME,
-          value: fragments[value].name.value,
+          value: fragment.name.value,
         },
       };
     },
     Variable(variable: VariableNode): VariableNode {
       const { name: { value } } = variable;
+      const renamed = variables.get(value);
 
-      if (!variables[value]) {
+      if (!renamed) {
         throw new Error(`Definition of variable '${value}' is missing in query '${print(doc)}'.`);
       }
 
@@ -137,7 +121,7 @@ export const renameVariablesAndFragments = <T: ASTNode>(
         ...variable,
         name: {
           kind: Kind.NAME,
-          value: variables[value].variable.name.value,
+          value: renamed.variable.name.value,
         },
       };
     },
@@ -149,13 +133,14 @@ export const renameVariablesAndFragments = <T: ASTNode>(
  * definitions.
  */
 export const extractDefinitionVariablesAndRootFields = (doc: DocumentNode, prefix: string): {
-  operation: OperationDefinitionNode,
+  operation: OperationTypeNode,
+  fields: Array<FieldNode>,
   fragments: Array<FragmentDefinitionNode>,
-  rootFields: AliasMap,
-  variableDefinitions: VariableMap,
+  aliases: AliasMap,
+  variables: VariableMap,
 } => {
   let selectedOperation: ?OperationDefinitionNode = null;
-  const fragments: FragmentMap = {};
+  const fragments: FragmentMap = new Map();
 
   // Fragments have problems with parameter names, especially if they are
   // reused or occur in front of the query/mutation, see
@@ -169,13 +154,13 @@ export const extractDefinitionVariablesAndRootFields = (doc: DocumentNode, prefi
   doc.definitions.forEach((node: DefinitionNode): void => {
     switch (node.kind) {
       case Kind.FRAGMENT_DEFINITION:
-        fragments[node.name.value] = {
+        fragments.set(node.name.value, {
           ...node,
           name: {
             kind: Kind.NAME,
             value: prefix + "f" + Object.keys(fragments).length,
           },
-        };
+        });
 
         break;
 
@@ -199,16 +184,21 @@ export const extractDefinitionVariablesAndRootFields = (doc: DocumentNode, prefi
 
   const {
     operation,
-    rootFields,
-    variableDefinitions,
+    fields,
+    aliases,
+    variables,
   } = extractOperationVariablesAndRootFields(doc, selectedOperation, prefix);
 
   return {
-    operation: renameVariablesAndFragments(doc, operation, variableDefinitions, fragments),
-    fragments: ((Object.values(fragments): any): Array<FragmentDefinitionNode>)
-      .map((frag: FragmentDefinitionNode): FragmentDefinitionNode =>
-        renameVariablesAndFragments(doc, frag, variableDefinitions, fragments)),
-    rootFields,
-    variableDefinitions,
+    operation,
+    fields: fields.map((field: FieldNode): FieldNode =>
+      renameVariablesAndFragments(doc, field, variables, fragments)),
+    fragments: Array.from(
+      fragments.values(),
+      (frag: FragmentDefinitionNode): FragmentDefinitionNode =>
+        renameVariablesAndFragments(doc, frag, variables, fragments)
+    ),
+    aliases,
+    variables,
   };
 };
