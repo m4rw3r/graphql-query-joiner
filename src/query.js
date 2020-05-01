@@ -96,14 +96,14 @@ export const joinRequests = (requests: Array<Request>): Request => {
   let operation: ?OperationTypeNode = null;
 
   const aliases: Map<string, string> = new Map();
-  const variables: Map<string, VariableDefinitionNode> = new Map();
+  const variables: Array<VariableDefinitionNode> = [];
 
   for (const r of requests) {
     // TODO: Verify?
     operation = r.operation;
 
-    for (const [k, v] of r.variables) {
-      variables.set(k, v);
+    for (const v of r.variables.values()) {
+      variables.push(v);
     }
 
     for (const [k, v] of r.aliases) {
