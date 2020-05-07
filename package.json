@@ -62,6 +62,12 @@
           "no-unused-expressions": "off",
           "quote-props": "off"
         }
+      },
+      {
+        "files": ["*.config.js", "*.config.cjs"],
+        "rules": {
+          "flowtype/require-valid-file-annotation": "off"
+        }
       }
     ],
     "rules": {

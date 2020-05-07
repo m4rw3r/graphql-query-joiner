@@ -3,18 +3,9 @@
 <PROJECT_ROOT>/coverage/.*
 <PROJECT_ROOT>/dist/.*
 
-[include]
-
-[libs]
-
 [lints]
-all=error
-sketchy-null-string=off
-untyped-import=off
-unclear-type=off
+uninitialized-instance-property=error
 
 [options]
 include_warnings=true
 esproposal.optional_chaining=enable
-
-[strict]

@@ -1,11 +1,7 @@
-/* @flow */
-
 import babelPlugin from "rollup-plugin-babel";
 import nodeResolve from "rollup-plugin-node-resolve";
 import gzipPlugin from "rollup-plugin-gzip";
 import { terser } from "rollup-plugin-terser";
-
-const COMPRESS = true;
 
 export default {
   input: "src/index.js",
@@ -21,7 +17,7 @@ export default {
       format: "cjs",
     },
   ],
-  preserveModules: !COMPRESS,
+  preserveModules: false,
   plugins: [
     nodeResolve(),
     babelPlugin({
@@ -38,7 +34,7 @@ export default {
       mangle: {
       },
       output: {
-        beautify: !COMPRESS,
+        beautify: true,
       },
       ecma: 5,
       module: true,
