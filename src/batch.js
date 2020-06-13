@@ -2,7 +2,7 @@
 
 import type { OperationTypeNode } from "graphql/language";
 
-import type { Query, TypeOfQueryParameters } from "./query";
+import type { Query, QueryParameters, QueryResponse } from "./query";
 import type { Request } from "./request";
 
 import { print } from "graphql/language";
@@ -26,12 +26,11 @@ export const createBatch = (operation: OperationTypeNode): Batch => ({
   entries: [],
 });
 
-// TODO: Return promise
 export const addQuery = <Q: Query<any, any>>(
   batch: Batch,
   query: Q,
-  parameters: TypeOfQueryParameters<Q> = {}
-): void => {
+  parameters: QueryParameters<Q> = {}
+): Promise<QueryResponse<Q>> => {
   const prefix = "_" + batch.entries.length + "_";
   const request = createRequest(prefix, query);
 
@@ -44,6 +43,10 @@ export const addQuery = <Q: Query<any, any>>(
   batch.entries.push({
     request,
     parameters: renameParameters(request, parameters, query),
+  });
+
+  return new Promise((resolve, reject) => {
+
   });
 };
 

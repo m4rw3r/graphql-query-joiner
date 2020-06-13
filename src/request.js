@@ -13,7 +13,7 @@ import type {
   VariableDefinitionNode,
   VariableNode,
 } from "graphql/language";
-import type { Query } from "./query";
+import type { Query, QueryParameters, QueryResponse } from "./query";
 
 import { Kind, print, visit } from "graphql/language";
 
@@ -22,15 +22,16 @@ export type FragmentMap = Map<string, FragmentDefinitionNode>;
 export type VariableMap = Map<string, VariableDefinitionNode>;
 
 export type Request = {
+  +query: Query<any, any>,
   +operation: OperationTypeNode,
   // Renamed fields
-  +fields: $ReadOnlyArray<FieldNode>,
+  +fields: $ReadOnlyArray<string>,
   // List of renamed fragments for this selection
   +fragments: $ReadOnlyArray<FragmentDefinitionNode>,
   // Map from new alias to old alias
-  +aliases: Map<string, string>,
+  // +aliases: Map<string, string>,
   // Renamed variables, old name -> new name
-  +variables: $ReadOnlyMap<string, VariableDefinitionNode>,
+  +variables: $ReadOnlyArray<string>,
 };
 
 /**
@@ -42,14 +43,16 @@ export const createRequest = <Q: Query<any, any>>(
   query: Q
 ): Request => {
   let operation: ?OperationDefinitionNode = null;
-  const fragments: FragmentMap = new Map();
-  const aliases: AliasMap = new Map();
-  const fields: Array<FieldNode> = [];
-  const variables: VariableMap = new Map();
+  const fragments: Array<string> = new Map();
+  // const aliases: AliasMap = new Map();
+  const fields: Array<string> = [];
+  const variables: Array<string> = [];
 
   const operationVisitor = {
     VariableDefinition(definition: VariableDefinitionNode): void {
-      variables.set(definition.variable.name.value, {
+      variables.push(definition.variable.name.value);
+
+      /*variables.set(definition.variable.name.value, {
         ...definition,
         variable: {
           ...definition.variable,
@@ -58,9 +61,21 @@ export const createRequest = <Q: Query<any, any>>(
             value: prefix + "v" + variables.size,
           },
         },
+      });*/
+    },
+    OperationDefinition(node: OperationDefinitionNode): void {
+      node.selectionSet.selections.forEach((sel: SelectionNode): void => {
+        if (sel.kind !== Kind.FIELD) {
+          throw new Error(
+            `Non-field selection found in root operation in query '${print(query)}'.`
+          );
+        }
+
+        fields.push(sel.alias ? sel.alias.value : sel.name.value);
       });
     },
-    OperationDefinition(node: OperationDefinitionNode): OperationDefinitionNode {
+
+    /*
       return {
         ...node,
         selectionSet: {
@@ -78,11 +93,11 @@ export const createRequest = <Q: Query<any, any>>(
                 ...sel,
                 alias: {
                   kind: Kind.NAME,
-                  value: prefix + "i" + aliases.size,
+                  value: name, // prefix + "i" + aliases.size,
                 },
               };
 
-              aliases.set(field.alias.value, name);
+              // aliases.set(field.alias.value, name);
               fields.push(field);
 
               return field;
@@ -91,6 +106,7 @@ export const createRequest = <Q: Query<any, any>>(
         },
       };
     },
+      */
   };
 
   // Fragments have problems with parameter names, especially if they are
@@ -104,6 +120,8 @@ export const createRequest = <Q: Query<any, any>>(
   query.definitions.forEach((node: DefinitionNode): void => {
     switch (node.kind) {
       case Kind.FRAGMENT_DEFINITION:
+        fragments.push(node.name.value);
+        /*
         fragments.set(node.name.value, {
           ...node,
           name: {
@@ -111,6 +129,7 @@ export const createRequest = <Q: Query<any, any>>(
             value: prefix + "f" + Object.keys(fragments).length,
           },
         });
+        */
 
         break;
 
@@ -135,15 +154,11 @@ export const createRequest = <Q: Query<any, any>>(
   }
 
   return {
+    query,
     operation: operation.operation,
-    fields: fields.map((field: FieldNode): FieldNode =>
-      renameVariablesAndFragments(query, field, variables, fragments)),
-    fragments: Array.from(
-      fragments.values(),
-      (frag: FragmentDefinitionNode): FragmentDefinitionNode =>
-        renameVariablesAndFragments(query, frag, variables, fragments)
-    ),
-    aliases,
+    fields,
+    fragments,
+    // aliases,
     variables,
   };
 };
@@ -245,3 +260,4 @@ export const renameVariablesAndFragments = <T: ASTNode>(
     },
   });
 };
+
