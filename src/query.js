@@ -28,8 +28,8 @@ export type GraphQLResponse<T> = {
   data: T,
 };
 
-export type GraphQLClient = <Q: Query<any, any>>(query: Q, variables: QueryParameters<Q>) =>
-  Promise<GraphQLResponse<QueryResponse<Q>>>;
+export type GraphQLClient = (query: DocumentNode, variables: { [key: string]: mixed }) =>
+  Promise<GraphQLResponse<mixed>>;
 
 export const runQueries = <T: $ReadOnlyArray<QueryRequest<any>>>(
   requests: T,
