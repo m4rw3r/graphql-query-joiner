@@ -4,7 +4,7 @@ import test from "ava";
 import { parse } from "graphql/language";
 import dummee from "dummee";
 
-import { runQueries } from "./runner";
+import { runQueries } from "./query";
 
 test("simple", async t => {
   const query = parse(`query { info }`, { noLocation: true });

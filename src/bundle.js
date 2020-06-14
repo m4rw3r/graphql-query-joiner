@@ -87,7 +87,7 @@ export const createBundle = (query: Query<any, any>): QueryBundle => {
   });
 
   if (!operation) {
-    throw new Error(`Executable operation is missing in query '${print(query)}.`);
+    throw new Error(`Executable operation is missing in query '${print(query)}'.`);
   }
 
   return {

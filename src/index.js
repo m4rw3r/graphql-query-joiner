@@ -1,6 +1,14 @@
 /* @flow */
 
-export type { Batch } from "./batch";
+export type {
+  Query,
+  QueryParameters,
+  QueryResponse,
+  QueryRequest,
+  GraphQLError,
+  GraphQLResponse,
+  GraphQLClient,
+} from "./query";
 
-export { createBatch, addQuery, stringify } from "./batch";
+export { runQueries } from "./query";
 
