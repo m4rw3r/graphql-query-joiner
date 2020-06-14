@@ -25,9 +25,11 @@ export type QueryBundle = {
 };
 
 export type MergedQueryBundle = {
-  bundle: QueryBundle,
-  renamedFields: { [oldName: string]: string },
-  renamedVariables: { [oldName: string]: string },
+  +bundle: QueryBundle,
+  // Map of old name -> new name
+  +renamedFields: $ReadOnlyMap<string, string>,
+  // Map of old name -> new name
+  +renamedVariables: $ReadOnlyMap<string, string>,
 };
 
 export const createBundle = (query: Query<any, any>): QueryBundle => {
@@ -96,15 +98,15 @@ export const createBundle = (query: Query<any, any>): QueryBundle => {
   };
 };
 
-export const mergeQueries = (bundle: QueryBundle, query: Query<any, any>): MergedQueryBundle => {
+export const mergeQuery = (
+  bundle: QueryBundle,
+  query: Query<any, any>
+): MergedQueryBundle => {
   const operation = bundle.operation;
   const variables = new Map(bundle.variables);
   const fields = new Map(bundle.fields);
   const fragments = new Map(bundle.fragments);
   const newBundle = createBundle(query);
-  const renamedFragments = {};
-  const renamedFields = {};
-  const renamedVariables = {};
 
   if (operation !== newBundle.operation) {
     throw new Error(
@@ -112,20 +114,23 @@ export const mergeQueries = (bundle: QueryBundle, query: Query<any, any>): Merge
     );
   }
 
-  newBundle.fields.forEach(createNamer(fields, renamedFields));
-  newBundle.fragments.forEach(createNamer(fragments, renamedFragments));
-  newBundle.variables.forEach(createNamer(variables, renamedVariables));
+  const renamedFragments = rename(fragments, newBundle.fragments);
+  const renamedFields = rename(fields, newBundle.fields);
+  const renamedVariables = rename(variables, newBundle.variables);
 
   const renameReferences = <T: ASTNode>(node: T): T => visit(node, {
     FragmentSpread(spread: FragmentSpreadNode): ?FragmentSpreadNode {
       const { name: { value } } = spread;
 
-      if (renamedFragments[value]) {
+      const newName = renamedFragments.get(value) || value;
+
+      if (newName !== value) {
+        // Only create a new fragment spread if we actually need to rename it
         return {
           ...spread,
           name: {
             kind: Kind.NAME,
-            value: renamedFragments[value],
+            value: newName,
           },
         };
       }
@@ -135,12 +140,15 @@ export const mergeQueries = (bundle: QueryBundle, query: Query<any, any>): Merge
     Variable(variable: VariableNode): ?VariableNode {
       const { name: { value } } = variable;
 
-      if (renamedVariables[value]) {
+      const newName = renamedVariables.get(value) || value;
+
+      if (newName !== value) {
+        // Only create a new variable spread if we actually need to rename it
         return {
           ...variable,
           name: {
             kind: Kind.NAME,
-            value: renamedVariables[value],
+            value: newName,
           },
         };
       }
@@ -151,46 +159,52 @@ export const mergeQueries = (bundle: QueryBundle, query: Query<any, any>): Merge
 
   // Rename self and references while assigning to merged bundle
   newBundle.fields.forEach((field: FieldNode, name: string): void => {
-    if (renamedFields[name]) {
+    const newName = renamedFields.get(name) || name;
+
+    if (newName !== name) {
       field = {
         ...field,
         alias: {
           kind: Kind.NAME,
-          value: renamedFields[name],
+          value: newName,
         },
       };
     }
 
-    fields.set(renamedFields[name] || name, renameReferences(field));
+    fields.set(newName, renameReferences(field));
   });
   newBundle.fragments.forEach((fragment: FragmentDefinitionNode, name: string): void => {
-    if (renamedFragments[name]) {
+    const newName = renamedFragments.get(name) || name;
+
+    if (newName !== name) {
       fragment = {
         ...fragment,
         name: {
           kind: Kind.NAME,
-          value: renamedFragments[name],
+          value: newName,
         },
       };
     }
 
-    fragments.set(renamedFragments[name] || name, renameVariablesAndFragments(fragment));
+    fragments.set(newName, renameReferences(fragment));
   });
   newBundle.variables.forEach((node: VariableDefinitionNode, name: string): void => {
-    if (renamedVariables[name]) {
+    const newName = renamedVariables.get(name) || name;
+
+    if (newName !== name) {
       node = {
         ...node,
         variable: {
           ...node.variable,
           name: {
             kind: Kind.NAME,
-            value: renamedVariables[name],
+            value: newName,
           },
         },
       };
     }
 
-    variables.set(renamedVariables[name] || name, renameReferences(node));
+    variables.set(newName, renameReferences(node));
   });
 
   return {
@@ -232,23 +246,27 @@ export const createDocument = ({
 };
 
 /**
- * Creates a function which renames conflicting keys in `existing`, storing
- * the new names in the `nameMap`.
+ * Returns a map of old name -> new name for the supplied maps, if the name is
+ * not colliding it will not be renamed but will still be included in the
+ * result.
  */
-const createNamer = <T>(
-  existing: Map<string, T>,
-  nameMap: { [original: string]: string }
-): ((T, string) => void) =>
-    (object: T, name: string): void => {
-      let i = 0;
-      let newName = name;
+const rename = <T>(
+  oldItems: $ReadOnlyMap<string, T>,
+  newItems: $ReadOnlyMap<string, T>
+): Map<string, string> => {
+  const newNames = new Map();
 
-      while (existing.has(newName)) {
-        i++;
-        newName = name + (i > 0 ? `_${i}` : "");
-      }
+  newItems.forEach((object: T, name: string): void => {
+    let i = 0;
+    let newName = name;
 
-      if (i > 0) {
-        nameMap[name] = newName;
-      }
-    };
+    while (oldItems.has(newName)) {
+      i++;
+      newName = name + (i > 0 ? `_${i}` : "");
+    }
+
+    newNames.set(name, newName);
+  });
+
+  return newNames;
+};
