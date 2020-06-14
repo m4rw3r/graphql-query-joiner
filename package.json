@@ -57,9 +57,9 @@
       {
         "files": "src/*.test.js",
         "rules": {
+          "flowtype/no-unused-expressions": "off",
           "flowtype/require-parameter-type": "off",
           "flowtype/require-return-type": "off",
-          "flowtype/no-unused-expressions": "off",
           "no-unused-expressions": "off",
           "quote-props": "off"
         }
@@ -70,16 +70,12 @@
           "*.config.cjs"
         ],
         "rules": {
-          "flowtype/require-valid-file-annotation": "off"
+          "flowtype/require-valid-file-annotation": "off",
+          "import/no-anonymous-default-export": "off"
         }
       }
     ],
     "rules": {
-      "ava/use-test": "off",
-      "brace-style": [
-        "error",
-        "stroustrup"
-      ],
       "comma-dangle": [
         "error",
         {
@@ -142,32 +138,16 @@
           ]
         }
       ],
-      "import/no-unresolved": "off",
-      "import/order": "off",
-      "lines-between-class-members": [
-        "error",
-        "always",
-        {
-          "exceptAfterSingleLine": true
-        }
-      ],
       "max-len": [
         "error",
         {
           "code": 100,
           "comments": 80,
-          "ignoreStrings": true
+          "ignoreStrings": true,
+          "ignoreTemplateLiterals": true
         }
       ],
-      "no-case-declarations": "off",
-      "no-labels": "off",
-      "no-unused-vars": [
-        "error",
-        {
-          "varsIgnorePattern": "^React$"
-        }
-      ],
-      "no-useless-constructor": "off",
+      "no-unused-vars": "error",
       "object-curly-spacing": [
         "error",
         "always"
@@ -185,7 +165,6 @@
           "name": "e"
         }
       ],
-      "unicorn/prefer-includes": "off",
       "valid-jsdoc": "off"
     },
     "space": 2
