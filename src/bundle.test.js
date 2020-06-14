@@ -89,7 +89,6 @@ test("Multiple aliased fields", t => {
   t.snapshot(print(doc));
 });
 
-
 test("Alias one, keep others", t => {
   const query = parse(`query { info }`, { noLocation: true });
   const query2 = parse(`query { info another }`, { noLocation: true });

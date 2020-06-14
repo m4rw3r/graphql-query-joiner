@@ -42,11 +42,11 @@ test("Simple two", async t => {
 test("Variables", async t => {
   const query = parse(
     `query ($foo: String!, $bar: Int) { info(a: $foo) second { bar(bar: $bar) } }`,
-    { noLocation: true },
+    { noLocation: true }
   );
   const query2 = parse(
     `query ($foo: String, $baz: Boolean) { info(a: $foo) another(a: $foo) third { bar(baz: $baz) } }`,
-    { noLocation: true },
+    { noLocation: true }
   );
   const stub = dummee(() => (new Promise(resolve => resolve({
     data: {
@@ -55,7 +55,7 @@ test("Variables", async t => {
       another: "foo",
       "info_1": "test2",
       third: { bar: "lol" },
-    }
+    },
   }))));
 
   const data = await runQueries([{ query, variables: {} }, { query: query2, variables: {} }], stub);
