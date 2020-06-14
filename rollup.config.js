@@ -1,7 +1,5 @@
-import babelPlugin from "rollup-plugin-babel";
-import nodeResolve from "rollup-plugin-node-resolve";
-import gzipPlugin from "rollup-plugin-gzip";
-import { terser } from "rollup-plugin-terser";
+import babelPlugin from "@rollup/plugin-babel";
+import nodeResolve from "@rollup/plugin-node-resolve";
 
 export default {
   input: "src/index.js",
@@ -17,36 +15,16 @@ export default {
       format: "cjs",
     },
   ],
-  preserveModules: false,
+  preserveModules: true,
   plugins: [
     nodeResolve(),
     babelPlugin({
       babelrc: false,
       configFile: "./babel.config.cjs",
-    }),
-    terser({
-      parse: {
-
-      },
-      compress: {
-
-      },
-      mangle: {
-      },
-      output: {
-        beautify: true,
-      },
-      ecma: 5,
-      module: true,
-      ie8: false,
-    }),
-    gzipPlugin({
-      gzipOptions: {
-        level: 9,
-      },
+      babelHelpers: "bundled",
     }),
   ],
   external: [
-    "graphql/language",
+    /^graphql(\/.+)*$/,
   ],
 };

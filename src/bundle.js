@@ -20,6 +20,7 @@ import { Kind, print, visit } from "graphql/language";
 export type QueryBundle = {
   +operation: OperationTypeNode,
   +variables: $ReadOnlyMap<string, VariableDefinitionNode>,
+  // Map is used to preserve order of fields
   +fields: $ReadOnlyMap<string, FieldNode>,
   +fragments: $ReadOnlyMap<string, FragmentDefinitionNode>,
 };
@@ -27,9 +28,9 @@ export type QueryBundle = {
 export type MergedQueryBundle = {
   +bundle: QueryBundle,
   // Map of old name -> new name
-  +renamedFields: $ReadOnlyMap<string, string>,
+  +renamedFields: { +[key: string]: string },
   // Map of old name -> new name
-  +renamedVariables: $ReadOnlyMap<string, string>,
+  +renamedVariables: { +[key: string]: string },
 };
 
 export const createBundle = (query: Query<any, any>): QueryBundle => {
@@ -114,6 +115,7 @@ export const mergeQuery = (
     );
   }
 
+  // Most of these might be order-sensitive
   const renamedFragments = rename(fragments, newBundle.fragments);
   const renamedFields = rename(fields, newBundle.fields);
   const renamedVariables = rename(variables, newBundle.variables);
@@ -122,7 +124,7 @@ export const mergeQuery = (
     FragmentSpread(spread: FragmentSpreadNode): ?FragmentSpreadNode {
       const { name: { value } } = spread;
 
-      const newName = renamedFragments.get(value) || value;
+      const newName = renamedFragments[value] || value;
 
       if (newName !== value) {
         // Only create a new fragment spread if we actually need to rename it
@@ -140,7 +142,7 @@ export const mergeQuery = (
     Variable(variable: VariableNode): ?VariableNode {
       const { name: { value } } = variable;
 
-      const newName = renamedVariables.get(value) || value;
+      const newName = renamedVariables[value] || value;
 
       if (newName !== value) {
         // Only create a new variable spread if we actually need to rename it
@@ -159,7 +161,7 @@ export const mergeQuery = (
 
   // Rename self and references while assigning to merged bundle
   newBundle.fields.forEach((field: FieldNode, name: string): void => {
-    const newName = renamedFields.get(name) || name;
+    const newName = renamedFields[name] || name;
 
     if (newName !== name) {
       field = {
@@ -174,7 +176,7 @@ export const mergeQuery = (
     fields.set(newName, renameReferences(field));
   });
   newBundle.fragments.forEach((fragment: FragmentDefinitionNode, name: string): void => {
-    const newName = renamedFragments.get(name) || name;
+    const newName = renamedFragments[name] || name;
 
     if (newName !== name) {
       fragment = {
@@ -189,7 +191,7 @@ export const mergeQuery = (
     fragments.set(newName, renameReferences(fragment));
   });
   newBundle.variables.forEach((node: VariableDefinitionNode, name: string): void => {
-    const newName = renamedVariables.get(name) || name;
+    const newName = renamedVariables[name] || name;
 
     if (newName !== name) {
       node = {
@@ -253,8 +255,8 @@ export const createDocument = ({
 const rename = <T>(
   oldItems: $ReadOnlyMap<string, T>,
   newItems: $ReadOnlyMap<string, T>
-): Map<string, string> => {
-  const newNames = new Map();
+): { [key: string]: string } => {
+  const newNames = {};
 
   newItems.forEach((object: T, name: string): void => {
     let i = 0;
@@ -264,7 +266,7 @@ const rename = <T>(
       newName = name + `_${++i}`;
     }
 
-    newNames.set(name, newName);
+    newNames[name] = newName;
   });
 
   return newNames;

@@ -31,6 +31,8 @@ export type GraphQLResponse<T> = {
 export type GraphQLClient = (query: DocumentNode, variables: { [key: string]: mixed }) =>
   Promise<GraphQLResponse<mixed>>;
 
+type RenameMap = { +[key: string]: string };
+
 export const runQueries = <T: $ReadOnlyArray<QueryRequest<any>>>(
   requests: T,
   client: GraphQLClient
@@ -39,44 +41,46 @@ export const runQueries = <T: $ReadOnlyArray<QueryRequest<any>>>(
     return new Promise((resolve: (Array<GraphQLResponse<any>>) => void): void => resolve([]));
   }
 
-  // Unordered
   const requestVariables = { ...requests[0].variables };
   const firstBundle = createBundle(requests[0].query);
-  // Ordered
-  const firstBundleFields = new Map();
+  const firstBundleFields = {};
 
-  for (const i of firstBundle.fields.keys()) {
-    firstBundleFields.set(i, i);
-  }
+  firstBundle.fields.forEach((_: mixed, k: string): void => {
+    firstBundleFields[k] = k;
+  });
 
-  const responseFieldMap = [
+  const responseFieldMap: Array<RenameMap> = [
     firstBundleFields,
   ];
   /* eslint-disable unicorn/no-reduce */
   const bundle = requests.slice(1).reduce((b: QueryBundle, r: QueryRequest<any>): QueryBundle => {
-  /* eslint-enable unicorn/no-reduce */
     const { bundle, renamedVariables, renamedFields } = mergeQuery(b, r.query);
 
-    for (const [k, v] of renamedVariables) {
-      requestVariables[v] = r.variables[k];
+    /* eslint-disable guard-for-in */
+    for (const k in renamedVariables) {
+      requestVariables[renamedVariables[k]] = r.variables[k];
     }
+    /* eslint-enable guard-for-in */
 
     responseFieldMap.push(renamedFields);
 
     return bundle;
   }, firstBundle);
+  /* eslint-enable unicorn/no-reduce */
 
   const response = client(createDocument(bundle), requestVariables);
 
   return response.then((bundledResponse: GraphQLResponse<any>): Array<GraphQLResponse<any>> => {
     // TODO: Handle errors
 
-    return responseFieldMap.map((fields: $ReadOnlyMap<string, string>): GraphQLResponse<any> => {
+    return responseFieldMap.map((fields: RenameMap): GraphQLResponse<any> => {
       const data = {};
 
-      for (const [k, v] of fields) {
-        data[k] = bundledResponse.data[v];
+      /* eslint-disable guard-for-in */
+      for (const k in fields) {
+        data[k] = bundledResponse.data[fields[k]];
       }
+      /* eslint-enable guard-for-in */
 
       return {
         data,
