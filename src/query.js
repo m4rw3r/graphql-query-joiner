@@ -75,7 +75,7 @@ export const runQueries = <T: $ReadOnlyArray<QueryRequest<any>>>(
       const data = {};
 
       for (const [k, v] of fields) {
-        data[v] = bundledResponse.data[k];
+        data[k] = bundledResponse.data[v];
       }
 
       return {

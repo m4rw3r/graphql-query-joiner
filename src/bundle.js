@@ -261,8 +261,7 @@ const rename = <T>(
     let newName = name;
 
     while (oldItems.has(newName)) {
-      i++;
-      newName = name + (i > 0 ? `_${i}` : "");
+      newName = name + `_${++i}`;
     }
 
     newNames.set(name, newName);
