@@ -154,3 +154,31 @@ test("Advanced mergeQuery", t => {
   t.snapshot(doc);
   t.snapshot(print(doc));
 });
+
+test("mergeQuery with fragments", t => {
+  const b = createBundle(parse(`fragment Foo on Bar { info test }
+
+  query Foo($param: String) {
+    getIt(value: $param) {
+      result
+      ...Foo
+    }
+  }`, { noLocation: true }));
+
+  t.snapshot(b);
+
+  const b2 = mergeQuery(b, parse(`fragment Foo on Bar { test }
+  query Baz($param: String) {
+    bopIt(value: $param) {
+      result
+      ...Foo
+    }
+  }`, { noLocation: true }));
+
+  t.snapshot(b2);
+
+  const doc = createDocument(b2.bundle);
+
+  t.snapshot(doc);
+  t.snapshot(print(doc));
+});
