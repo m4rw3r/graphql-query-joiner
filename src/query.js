@@ -53,7 +53,6 @@ export const runQueries = <T: $ReadOnlyArray<QueryRequest<any>>>(
   const responseFieldMap: Array<RenameMap> = [
     firstBundleFields,
   ];
-  /* eslint-disable unicorn/no-reduce */
   const bundle = requests.slice(1).reduce((b: QueryBundle, r: QueryRequest<any>): QueryBundle => {
     const { bundle, renamedVariables, renamedFields } = mergeQuery(b, r.query);
 
@@ -67,7 +66,6 @@ export const runQueries = <T: $ReadOnlyArray<QueryRequest<any>>>(
 
     return bundle;
   }, firstBundle);
-  /* eslint-enable unicorn/no-reduce */
 
   const response = client(createDocument(bundle), requestVariables);
 
