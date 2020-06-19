@@ -102,12 +102,16 @@ export const createBundle = (query: Query<any, any>): QueryBundle => {
 export const mergeQuery = (
   bundle: QueryBundle,
   query: Query<any, any>
+): MergedQueryBundle => mergeBundle(bundle, createBundle(query));
+
+export const mergeBundle = (
+  bundle: QueryBundle,
+  newBundle: QueryBundle
 ): MergedQueryBundle => {
   const operation = bundle.operation;
   const variables = new Map(bundle.variables);
   const fields = new Map(bundle.fields);
   const fragments = new Map(bundle.fragments);
-  const newBundle = createBundle(query);
 
   if (operation !== newBundle.operation) {
     throw new Error(
