@@ -32,7 +32,7 @@ export type GraphQLResponse<T> = {
 export type GraphQLClient = (query: DocumentNode, variables: { [key: string]: mixed }) =>
   Promise<GraphQLResponse<mixed>>;
 
-type RenameMap = { +[key: string]: string };
+export type RenameMap = { +[key: string]: string };
 
 export const runQueries = <T: $ReadOnlyArray<QueryRequest<any>>>(
   requests: T,
