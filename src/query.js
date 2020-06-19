@@ -21,10 +21,11 @@ export type QueryRequest<Q: Query<any, any>> = {
 
 export type GraphQLError = {
   message: string,
+  path: Array<string>,
 };
 
 export type GraphQLResponse<T> = {
-  error?: Array<GraphQLError>,
+  errors?: Array<GraphQLError>,
   data: T,
 };
 
