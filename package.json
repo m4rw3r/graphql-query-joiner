@@ -148,6 +148,7 @@
           "ignoreTemplateLiterals": true
         }
       ],
+      "max-params": "off",
       "no-unused-vars": "error",
       "object-curly-spacing": [
         "error",
