@@ -136,21 +136,10 @@ export const groupErrors = (
     errors.filter((error: GraphQLError): boolean => group.includes((error.path || [])[0])));
 
   // We need to make sure that errors without a path also gets propagated
-  const missingErrors = errors.filter((error: GraphQLError): boolean => {
-    for (const g of matchedErrors) {
-      if (g.includes(error)) {
-        return false;
-      }
-    }
+  const missingErrors = errors.filter((error: GraphQLError): boolean =>
+    !matchedErrors.some((g: Array<GraphQLError>): boolean => g.includes(error)));
 
-    return true;
-  });
-
-  for (const error of missingErrors) {
-    for (const matched of matchedErrors) {
-      matched.push(error);
-    }
-  }
+  matchedErrors.forEach((m: Array<GraphQLError>): any => m.push(...missingErrors));
 
   return matchedErrors;
 };
@@ -158,35 +147,37 @@ export const groupErrors = (
 export const runGroup = (
   runQuery: QueryRunner,
   { bundle, variables, fieldMap, promises }: Group
-): Promise<void> => {
-  return runQuery({
-    query: print(createDocument(bundle)),
-    variables,
-  }).then((bundledResponse: GraphQLResponse<any>): void => {
-    const errors = groupErrors(
-      bundledResponse.errors || [],
-      fieldMap.map((map: RenameMap): Array<any> => Object.values(map))
-    );
-
-    fieldMap.forEach((fields: RenameMap, i: number): void => {
-      if (errors[i].length > 0) {
-        return promises[i].reject(queryError(errors[i]));
-      }
-
-      const data = {};
-
-      /* eslint-disable guard-for-in */
-      for (const k in fields) {
-        data[k] = bundledResponse.data[fields[k]];
-      }
-      /* eslint-enable guard-for-in */
-
-      promises[i].resolve(data);
-    });
-  }, (error: Error): void =>
-    promises.forEach(({ reject }: { reject: RejectFn }): void => reject(error))
+): Promise<void> => runQuery({
+  query: print(createDocument(bundle)),
+  variables,
+}).then((bundledResponse: GraphQLResponse<any>): void => {
+  const errors = groupErrors(
+    bundledResponse.errors || [],
+    fieldMap.map((map: RenameMap): Array<any> => Object.values(map))
   );
-};
+
+  fieldMap.forEach((fields: RenameMap, i: number): void => {
+    if (errors[i].length > 0) {
+      return promises[i].reject(queryError(errors[i]));
+    }
+
+    const data = {};
+
+    /* eslint-disable guard-for-in */
+    for (const k in fields) {
+      data[k] = bundledResponse.data[fields[k]];
+    }
+    /* eslint-enable guard-for-in */
+
+    promises[i].resolve(data);
+  });
+}, (error: Error): void =>
+  promises.forEach(({ reject }: { reject: RejectFn }): void => reject(error))
+);
+
+export const runGroups = (runQuery: QueryRunner, groups: Array<Group>): Promise<void> =>
+  groups.reduce((p: Promise<void>, group: Group): Promise<void> =>
+    p.then((): Promise<void> => runGroup(runQuery, group)), resolved);
 
 export const createClient = ({ runQuery, debounce = 50 }: ClientArgs): Client<{}> => {
   let next = resolved;
@@ -194,15 +185,9 @@ export const createClient = ({ runQuery, debounce = 50 }: ClientArgs): Client<{}
   let pending = [];
 
   const fire = (): void => {
-    // TODO: Control how this chaining is done
+    // TODO: Control how this chaining is done?
     next = next.then((): Promise<void> => {
-      // TODO: This is the chaining which should always happen, to
-      // ensure ordering of the group operation types
-      const r = pending.reduce(
-        (p: Promise<void>, group: Group): Promise<void> =>
-          p.then((): Promise<void> => runGroup(runQuery, group)),
-        resolved
-      );
+      const r = runGroups(runQuery, pending);
 
       // Clear now that we fired off stuff
       pending = [];
