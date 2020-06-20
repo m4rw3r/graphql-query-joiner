@@ -9,3 +9,4 @@ uninitialized-instance-property=error
 [options]
 include_warnings=true
 esproposal.optional_chaining=enable
+experimental.const_params=true

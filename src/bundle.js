@@ -167,50 +167,38 @@ export const mergeBundle = (
   newBundle.fields.forEach((field: FieldNode, name: string): void => {
     const newName = renamedFields[name] || name;
 
-    if (newName !== name) {
-      field = {
-        ...field,
-        alias: {
-          kind: Kind.NAME,
-          value: newName,
-        },
-      };
-    }
-
-    fields.set(newName, renameReferences(field));
+    fields.set(newName, renameReferences(newName === name ? field : {
+      ...field,
+      alias: {
+        kind: Kind.NAME,
+        value: newName,
+      },
+    }));
   });
   newBundle.fragments.forEach((fragment: FragmentDefinitionNode, name: string): void => {
     const newName = renamedFragments[name] || name;
 
-    if (newName !== name) {
-      fragment = {
-        ...fragment,
-        name: {
-          kind: Kind.NAME,
-          value: newName,
-        },
-      };
-    }
-
-    fragments.set(newName, renameReferences(fragment));
+    fragments.set(newName, renameReferences(newName === name ? fragment : {
+      ...fragment,
+      name: {
+        kind: Kind.NAME,
+        value: newName,
+      },
+    }));
   });
   newBundle.variables.forEach((node: VariableDefinitionNode, name: string): void => {
     const newName = renamedVariables[name] || name;
 
-    if (newName !== name) {
-      node = {
-        ...node,
-        variable: {
-          ...node.variable,
-          name: {
-            kind: Kind.NAME,
-            value: newName,
-          },
+    variables.set(newName, renameReferences(newName === name ? node : {
+      ...node,
+      variable: {
+        ...node.variable,
+        name: {
+          kind: Kind.NAME,
+          value: newName,
         },
-      };
-    }
-
-    variables.set(newName, renameReferences(node));
+      },
+    }));
   });
 
   return {
