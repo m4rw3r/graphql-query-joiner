@@ -4,7 +4,6 @@ export type {
   Query,
   QueryParameters,
   QueryResponse,
-  QueryRequest,
   GraphQLError,
   GraphQLResponse,
 } from "./query";

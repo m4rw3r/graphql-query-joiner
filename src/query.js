@@ -11,11 +11,6 @@ export type QueryParameters<+Q: Query<any, any>> =
 export type QueryResponse<+Q: Query<any, any>> =
   $Call<<T, Q: Query<any, T>>(Q) => T, Q>;
 
-export type QueryRequest<Q: Query<any, any>> = {
-  query: Q,
-  variables: QueryParameters<Q>,
-};
-
 export type GraphQLError = {
   message: string,
   path: Array<string>,
