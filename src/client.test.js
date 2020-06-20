@@ -11,6 +11,7 @@ test("enqueue missing parameters", t => {
   const reject = dummee();
   const bundle = createBundle(parse("query ($foo: String) { info }"));
   const queue = [];
+  const parameters = { foo: "test" };
 
   t.throws(() => enqueue(queue, bundle, undefined, resolve, reject), {
     message: "Variable 'foo' is missing.",
@@ -26,9 +27,10 @@ test("enqueue missing parameters", t => {
   t.deepEqual(resolve.calls, []);
   t.deepEqual(reject.calls, []);
 
-  enqueue(queue, bundle, { foo: "test" }, resolve, reject);
+  enqueue(queue, bundle, parameters, resolve, reject);
   t.is(queue.length, 1);
   t.deepEqual(queue[0].variables, { foo: "test" });
+  t.not(queue[0].variables, parameters);
   t.deepEqual(queue[0].fieldMap, [
     { info: "info" },
   ]);
