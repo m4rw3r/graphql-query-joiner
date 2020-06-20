@@ -162,6 +162,109 @@ test("enqueue first", t => {
   t.deepEqual(reject3.calls, []);
 });
 
+test("enqueue different", t => {
+  const queue = [];
+  const bundle = createBundle(parse("query { info }", { noLocation: true }));
+  const resolve = dummee();
+  const reject = dummee();
+
+  t.is(enqueue(queue, bundle, undefined, resolve, reject), undefined);
+  t.deepEqual(queue, [
+    {
+      bundle,
+      variables: {},
+      fieldMap: [
+        { info: "info" },
+      ],
+      promises: [{ resolve, reject }],
+    },
+  ]);
+  t.is(queue[0].bundle, bundle);
+  t.is(print(createDocument(queue[0].bundle)), `{
+  info
+}
+`);
+  t.is(queue[0].promises[0].resolve, resolve);
+  t.is(queue[0].promises[0].reject, reject);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, []);
+
+  const bundle2 = createBundle(parse("mutation ($theparam: String) { doIt }", { noLocation: true }));
+  const resolve2 = dummee();
+  const reject2 = dummee();
+
+  t.is(enqueue(queue, bundle2, { theparam: "foo" }, resolve2, reject2), undefined);
+  t.is(queue.length, 2);
+  t.is(queue[0].bundle, bundle);
+  t.is(queue[1].bundle, bundle2);
+  t.deepEqual(queue[0].variables, {});
+  t.deepEqual(queue[1].variables, { theparam: "foo" });
+  t.deepEqual(queue[0].fieldMap, [
+    { info: "info" },
+  ]);
+  t.deepEqual(queue[1].fieldMap, [
+    { doIt: "doIt" },
+  ]);
+  t.deepEqual(queue[0].promises, [
+    { resolve, reject },
+  ]);
+  t.deepEqual(queue[1].promises, [
+    { resolve: resolve2, reject: reject2 },
+  ]);
+  t.is(print(createDocument(queue[0].bundle)), `{
+  info
+}
+`);
+  t.is(print(createDocument(queue[1].bundle)), `mutation ($theparam: String) {
+  doIt
+}
+`);
+  t.is(queue[1].promises[0].resolve, resolve2);
+  t.is(queue[1].promises[0].reject, reject2);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, []);
+  t.deepEqual(resolve2.calls, []);
+  t.deepEqual(reject2.calls, []);
+
+  const resolve3 = dummee();
+  const reject3 = dummee();
+
+  t.is(enqueue(queue, bundle, undefined, resolve3, reject3), undefined);
+  t.is(queue.length, 3);
+  t.is(queue[0].bundle, bundle);
+  t.is(queue[1].bundle, bundle2);
+  t.is(queue[2].bundle, bundle);
+  t.deepEqual(queue[0].variables, {});
+  t.deepEqual(queue[1].variables, { theparam: "foo" });
+  t.deepEqual(queue[2].variables, {});
+  t.deepEqual(queue[0].fieldMap, [
+    { info: "info" },
+  ]);
+  t.deepEqual(queue[1].fieldMap, [
+    { doIt: "doIt" },
+  ]);
+  t.deepEqual(queue[2].fieldMap, [
+    { info: "info" },
+  ]);
+  t.deepEqual(queue[0].promises, [
+    { resolve, reject },
+  ]);
+  t.deepEqual(queue[1].promises, [
+    { resolve: resolve2, reject: reject2 },
+  ]);
+  t.deepEqual(queue[2].promises, [
+    { resolve: resolve3, reject: reject3 },
+  ]);
+  t.is(queue[2].promises[0].resolve, resolve3);
+  t.is(queue[2].promises[0].reject, reject3);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, []);
+  t.deepEqual(resolve2.calls, []);
+  t.deepEqual(reject2.calls, []);
+  t.deepEqual(resolve3.calls, []);
+  t.deepEqual(reject3.calls, []);
+});
+
 test("handleResponse text throw not ok", async t => {
   const err = new Error("Failed test-reading");
   const response = {
