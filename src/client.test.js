@@ -6,6 +6,67 @@ import { parse, print } from "graphql/language";
 import { createBundle, createDocument } from "./bundle";
 import { enqueue } from "./client";
 
+test("enqueue missing parameters", t => {
+  const resolve = dummee();
+  const reject = dummee();
+  const bundle = createBundle(parse("query ($foo: String) { info }"));
+  const queue = [];
+
+  t.throws(() => enqueue(queue, bundle, undefined, resolve, reject), {
+    message: "Variable 'foo' is missing.",
+  });
+  t.deepEqual(queue, []);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, []);
+
+  t.throws(() => enqueue(queue, bundle, {}, resolve, reject), {
+    message: "Variable 'foo' is missing.",
+  });
+  t.deepEqual(queue, []);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, []);
+
+  enqueue(queue, bundle, { foo: "test" }, resolve, reject);
+  t.is(queue.length, 1);
+  t.deepEqual(queue[0].variables, { foo: "test" });
+  t.deepEqual(queue[0].fieldMap, [
+    { info: "info" },
+  ]);
+  t.deepEqual(queue[0].promises, [
+    { resolve, reject },
+  ]);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, []);
+
+  t.throws(() => enqueue(queue, bundle, undefined, resolve, reject), {
+    message: "Variable 'foo' is missing.",
+  });
+  t.is(queue.length, 1);
+  t.deepEqual(queue[0].variables, { foo: "test" });
+  t.deepEqual(queue[0].fieldMap, [
+    { info: "info" },
+  ]);
+  t.deepEqual(queue[0].promises, [
+    { resolve, reject },
+  ]);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, []);
+
+  t.throws(() => enqueue(queue, bundle, {}, resolve, reject), {
+    message: "Variable 'foo' is missing.",
+  });
+  t.is(queue.length, 1);
+  t.deepEqual(queue[0].variables, { foo: "test" });
+  t.deepEqual(queue[0].fieldMap, [
+    { info: "info" },
+  ]);
+  t.deepEqual(queue[0].promises, [
+    { resolve, reject },
+  ]);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, []);
+});
+
 test("enqueue first", t => {
   const queue = [];
   const bundle = createBundle(parse("query { info }", { noLocation: true }));
@@ -30,6 +91,8 @@ test("enqueue first", t => {
 `);
   t.is(queue[0].promises[0].resolve, resolve);
   t.is(queue[0].promises[0].reject, reject);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, []);
 
   const bundle2 = createBundle(parse("query { info }", { noLocation: true }));
   const resolve2 = dummee();
@@ -56,6 +119,10 @@ test("enqueue first", t => {
 `);
   t.is(queue[0].promises[1].resolve, resolve2);
   t.is(queue[0].promises[1].reject, reject2);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, []);
+  t.deepEqual(resolve2.calls, []);
+  t.deepEqual(reject2.calls, []);
 
   const bundle3 = createBundle(parse("query ($param: String) { getIt(foo: $param) }", { noLocation: true }));
   const resolve3 = dummee();
@@ -85,4 +152,10 @@ test("enqueue first", t => {
 `);
   t.is(queue[0].promises[1].resolve, resolve2);
   t.is(queue[0].promises[1].reject, reject2);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, []);
+  t.deepEqual(resolve2.calls, []);
+  t.deepEqual(reject2.calls, []);
+  t.deepEqual(resolve3.calls, []);
+  t.deepEqual(reject3.calls, []);
 });
