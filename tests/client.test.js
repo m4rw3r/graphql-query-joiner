@@ -3,8 +3,8 @@
 import test from "ava";
 import dummee from "dummee";
 import { parse, print } from "graphql/language";
-import { createBundle, createDocument } from "./bundle";
-import { enqueue, handleResponse } from "./client";
+import { createBundle, createDocument } from "../src/bundle";
+import { enqueue, handleResponse } from "../src/client";
 
 test("enqueue missing parameters", t => {
   const resolve = dummee();

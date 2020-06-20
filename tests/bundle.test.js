@@ -3,7 +3,7 @@
 import test from "ava";
 import { parse, print } from "graphql/language";
 
-import { createBundle, createDocument, mergeQuery } from "./bundle";
+import { createBundle, createDocument, mergeQuery } from "../src/bundle";
 
 test("Fragment in root", t => {
   const query = parse(`fragment Foo on Bar { test } query { ...Foo }`, { noLocation: true });

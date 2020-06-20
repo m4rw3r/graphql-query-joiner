@@ -4,13 +4,13 @@ export default {
       babelrc: false,
       configFile: true,
     },
-    compileAsTests: ["src/**/*"],
+    compileAsTests: ["src/**/*", "tests/**/*"],
   },
   files: [
-    "**/*.test.js",
+    "tests/**/*.test.js",
   ],
   powerAssert: true,
-  snapshotDir: "snapshots",
+  snapshotDir: "tests/snapshots",
   require: [
     "esm",
   ],

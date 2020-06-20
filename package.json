@@ -56,7 +56,7 @@
     ],
     "overrides": [
       {
-        "files": "src/*.test.js",
+        "files": "**/*.test.js",
         "rules": {
           "flowtype/no-unused-expressions": "off",
           "flowtype/require-parameter-type": "off",

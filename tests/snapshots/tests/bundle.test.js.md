@@ -1,4 +1,4 @@
-# Snapshot report for `src/bundle.test.js`
+# Snapshot report for `tests/bundle.test.js`
 
 The actual snapshot is saved in `bundle.test.js.snap`.
 
