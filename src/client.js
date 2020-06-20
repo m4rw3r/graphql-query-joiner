@@ -26,7 +26,7 @@ export type Client<-O> = <P, R: {}>(
 type ResolveFn = (value: any) => void;
 type RejectFn = (error: Error) => void;
 
-type Group = {
+export type Group = {
   bundle: QueryBundle,
   variables: { [key: string]: mixed },
   fieldMap: Array<RenameMap>,
@@ -122,6 +122,39 @@ export const enqueue = (
   }
 };
 
+/**
+ * Matches errors into groups based on their path.
+ *
+ * If an error is not in any of the supplied groups then it is assigned to all
+ * of them.
+ */
+export const groupErrors = (
+  errors: Array<GraphQLError>,
+  groups: Array<Array<string>>
+): Array<Array<GraphQLError>> => {
+  const matchedErrors = groups.map((group: Array<string>): Array<GraphQLError> =>
+    errors.filter((error: GraphQLError): boolean => group.includes((error.path || [])[0])));
+
+  // We need to make sure that errors without a path also gets propagated
+  const missingErrors = errors.filter((error: GraphQLError): boolean => {
+    for (const g of matchedErrors) {
+      if (g.includes(error)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  for (const error of missingErrors) {
+    for (const matched of matchedErrors) {
+      matched.push(error);
+    }
+  }
+
+  return matchedErrors;
+};
+
 export const runGroup = (
   runQuery: QueryRunner,
   { bundle, variables, fieldMap, promises }: Group
@@ -130,51 +163,29 @@ export const runGroup = (
     query: print(createDocument(bundle)),
     variables,
   }).then((bundledResponse: GraphQLResponse<any>): void => {
-      const errors = fieldMap.map((): Array<GraphQLError> => []);
-
-      // TODO: Can we simplify this error matching?
-      (bundledResponse.errors || []).forEach((error: GraphQLError): void => {
-        let found = false;
-
-        /* eslint-disable unicorn/no-for-loop */
-        for (let i = 0; i < fieldMap.length; i++) {
-          const map = fieldMap[i];
-
-          for (const k in map) {
-            if (error.path[0] === map[k]) {
-              found = true;
-
-              errors[i].push(error);
-            }
-          }
-        }
-        /* eslint-enable unicorn/no-for-loop */
-
-        if (!found) {
-          errors.forEach((item: Array<GraphQLError>): void => {
-            item.push(error);
-          });
-        }
-      });
-
-      fieldMap.forEach((fields: RenameMap, i: number): void => {
-        if (errors[i].length > 0) {
-          return promises[i].reject(queryError(errors[i]));
-        }
-
-        const data = {};
-
-        /* eslint-disable guard-for-in */
-        for (const k in fields) {
-          data[k] = bundledResponse.data[fields[k]];
-        }
-        /* eslint-enable guard-for-in */
-
-        promises[i].resolve(data);
-      });
-    }, (error: Error): void =>
-      promises.forEach(({ reject }: { reject: RejectFn }): void => reject(error))
+    const errors = groupErrors(
+      bundledResponse.errors || [],
+      fieldMap.map((map: RenameMap): Array<any> => Object.values(map))
     );
+
+    fieldMap.forEach((fields: RenameMap, i: number): void => {
+      if (errors[i].length > 0) {
+        return promises[i].reject(queryError(errors[i]));
+      }
+
+      const data = {};
+
+      /* eslint-disable guard-for-in */
+      for (const k in fields) {
+        data[k] = bundledResponse.data[fields[k]];
+      }
+      /* eslint-enable guard-for-in */
+
+      promises[i].resolve(data);
+    });
+  }, (error: Error): void =>
+    promises.forEach(({ reject }: { reject: RejectFn }): void => reject(error))
+  );
 };
 
 export const createClient = ({ runQuery, debounce = 50 }: ClientArgs): Client<{}> => {

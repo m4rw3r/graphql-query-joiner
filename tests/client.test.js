@@ -4,7 +4,7 @@ import test from "ava";
 import dummee from "dummee";
 import { parse, print } from "graphql/language";
 import { createBundle, createDocument } from "../src/bundle";
-import { enqueue, handleResponse } from "../src/client";
+import { enqueue, handleResponse, groupErrors } from "../src/client";
 
 test("enqueue missing parameters", t => {
   const resolve = dummee();
@@ -359,4 +359,35 @@ test("handleResponse", async t => {
   t.deepEqual(response.text.calls, [
     { args: [] },
   ]);
+});
+
+test("groupErrors empty", t => {
+  t.deepEqual(groupErrors([], []), []);
+  t.deepEqual(groupErrors([], [["foo"]]), [[]]);
+  t.deepEqual(groupErrors([], [["foo", "bar"]]), [[]]);
+  t.deepEqual(groupErrors([], [["foo", "bar"], ["baz"]]), [[], []]);
+});
+
+test("groupError bad error", t => {
+  t.deepEqual(groupErrors([{ message: "foo", path: [] }], [["foo"]]), [[{ message: "foo", path: [] }]]);
+  t.deepEqual(groupErrors([{ message: "foo", path: [] }], [["foo", "bar"]]), [[{ message: "foo", path: [] }]]);
+  t.deepEqual(groupErrors([{ message: "foo", path: [] }], [["foo"], ["bar"]]), [[{ message: "foo", path: [] }], [{ message: "foo", path: [] }]]);
+
+  t.deepEqual(groupErrors([({ message: "foo", path: null }: any)], [["foo"]]), [[{ message: "foo", path: null }]]);
+  t.deepEqual(groupErrors([({ message: "foo", path: null }: any)], [["foo", "bar"]]), [[{ message: "foo", path: null }]]);
+  t.deepEqual(groupErrors([({ message: "foo", path: null }: any)], [["foo"], ["bar"]]), [[{ message: "foo", path: null }], [{ message: "foo", path: null }]]);
+
+  t.deepEqual(groupErrors([({ message: "foo" }: any)], [["foo"]]), [[{ message: "foo" }]]);
+  t.deepEqual(groupErrors([({ message: "foo" }: any)], [["foo", "bar"]]), [[{ message: "foo" }]]);
+  t.deepEqual(groupErrors([({ message: "foo" }: any)], [["foo"], ["bar"]]), [[{ message: "foo" }], [{ message: "foo" }]]);
+});
+
+test("groupError", t => {
+  t.deepEqual(groupErrors([{ message: "foo", path: ["foo"] }], [["foo"]]), [[{ message: "foo", path: ["foo"] }]]);
+  t.deepEqual(groupErrors([{ message: "foo", path: ["bar"] }], [["foo"]]), [[{ message: "foo", path: ["bar"] }]]);
+  t.deepEqual(groupErrors([{ message: "foo", path: ["foo"] }], [["foo", "bar"]]), [[{ message: "foo", path: ["foo"] }]]);
+  t.deepEqual(groupErrors([{ message: "foo", path: ["foo"] }], [["foo"], ["bar"]]), [[{ message: "foo", path: ["foo"] }], []]);
+  t.deepEqual(groupErrors([{ message: "foo", path: ["bar"] }], [["foo"], ["bar"]]), [[], [{ message: "foo", path: ["bar"] }]]);
+  t.deepEqual(groupErrors([{ message: "foo", path: ["baz"] }], [["foo"], ["bar"]]), [[{ message: "foo", path: ["baz"] }], [{ message: "foo", path: ["baz"] }]]);
+  t.deepEqual(groupErrors([{ message: "foo", path: ["foo", "bar"] }], [["foo"], ["bar"]]), [[{ message: "foo", path: ["foo", "bar"] }], []]);
 });
