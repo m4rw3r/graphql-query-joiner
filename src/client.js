@@ -5,11 +5,16 @@ import type { QueryBundle } from "./bundle";
 
 import { print } from "graphql/language";
 import { createBundle, createDocument, mergeBundle } from "./bundle";
-import { requestError, parseError, queryError } from "./error";
+import { missingVariableError, parseError, queryError, requestError } from "./error";
+
+// TODO: Simplify or remove the Response requirement?
+export type QueryRunner = ({
+  query: string,
+  variables: { [key: string]: mixed },
+}) => Promise<Response>;
 
 export type ClientArgs = {
-  // TODO: Simplify or remove the Response requirement?
-  runQuery: ({ query: string, variables: { [key: string]: mixed } }) => Promise<Response>,
+  runQuery: QueryRunner,
   debounce?: number,
 };
 
@@ -32,23 +37,37 @@ type Group = {
 export const resolved: Promise<void> =
   new Promise((resolve: ResolveFn): void => resolve(undefined));
 
-const createPending = (
+const setVariable = (
+  variables: { [name: string]: mixed},
+  parameters: mixed,
+  key: string,
+  newName: string
+): void => {
+  if (typeof parameters !== "object" ||
+    !parameters ||
+    !Object.prototype.hasOwnProperty.call(parameters, key)) {
+    throw missingVariableError(key);
+  }
+
+  variables[newName] = parameters[key];
+};
+
+const createGroup = (
   bundle: QueryBundle,
   parameters: mixed,
   resolve: ResolveFn,
   reject: RejectFn
 ): Group => {
-  // TODO: Verify variables exist?
-  const variables = { ...(typeof parameters === "object" || {}) };
+  const variables = {};
   const firstBundleFields = {};
-
-  bundle.fields.forEach((_: mixed, k: string): void => {
-    firstBundleFields[k] = k;
-  });
-
   const fieldMap: Array<RenameMap> = [
     firstBundleFields,
   ];
+
+  bundle.variables.forEach((_: mixed, k: string): void => setVariable(variables, parameters, k, k));
+  bundle.fields.forEach((_: mixed, k: string): void => {
+    firstBundleFields[k] = k;
+  });
 
   return {
     bundle,
@@ -72,63 +91,94 @@ export const handleResponse = <R>(response: Response): Promise<R> =>
     }
   });
 
+export const enqueue = (
+  pending: Array<Group>,
+  newBundle: QueryBundle,
+  parameters: mixed,
+  resolve: ResolveFn,
+  reject: RejectFn
+): void => {
+  const last = pending[pending.length - 1];
+
+  if (last && last.bundle.operation === newBundle.operation) {
+    const { bundle, renamedVariables, renamedFields } =
+      mergeBundle(last.bundle, newBundle);
+
+    last.bundle = bundle;
+
+    /* eslint-disable guard-for-in */
+    for (const k in renamedVariables) {
+      setVariable(last.variables, parameters, k, renamedVariables[k]);
+    }
+    /* eslint-enable guard-for-in */
+
+    last.fieldMap.push(renamedFields);
+    last.promises.push({ resolve, reject });
+  } else {
+    pending.push(createGroup(newBundle, parameters, resolve, reject));
+  }
+};
+
+export const runGroup = (
+  runQuery: QueryRunner,
+  { bundle, variables, fieldMap, promises }: Group
+): Promise<void> => {
+  return runQuery({
+    query: print(createDocument(bundle)),
+    variables,
+  }).then(handleResponse)
+    .then((bundledResponse: GraphQLResponse<any>): void => {
+      const errors = fieldMap.map((): Array<GraphQLError> => []);
+
+      // TODO: Can we simplify this error matching?
+      (bundledResponse.errors || []).forEach((error: GraphQLError): void => {
+        let found = false;
+
+        /* eslint-disable unicorn/no-for-loop */
+        for (let i = 0; i < fieldMap.length; i++) {
+          const map = fieldMap[i];
+
+          for (const k in map) {
+            if (error.path[0] === map[k]) {
+              found = true;
+
+              errors[i].push(error);
+            }
+          }
+        }
+        /* eslint-enable unicorn/no-for-loop */
+
+        if (!found) {
+          errors.forEach((item: Array<GraphQLError>): void => {
+            item.push(error);
+          });
+        }
+      });
+
+      fieldMap.forEach((fields: RenameMap, i: number): void => {
+        if (errors[i].length > 0) {
+          return promises[i].reject(queryError(errors[i]));
+        }
+
+        const data = {};
+
+        /* eslint-disable guard-for-in */
+        for (const k in fields) {
+          data[k] = bundledResponse.data[fields[k]];
+        }
+        /* eslint-enable guard-for-in */
+
+        promises[i].resolve(data);
+      });
+    }, (error: Error): void =>
+      promises.forEach(({ reject }: { reject: RejectFn }): void => reject(error))
+    );
+};
+
 export const createClient = ({ runQuery, debounce = 50 }: ClientArgs): Client<{}> => {
   let next = resolved;
   let timer;
   let pending = [];
-
-  const runGroup = ({ bundle, variables, fieldMap, promises }: Group): Promise<void> => {
-    return runQuery({
-      query: print(createDocument(bundle)),
-      variables,
-    }).then(handleResponse)
-      .then((bundledResponse: GraphQLResponse<any>): void => {
-        const errors = fieldMap.map((): Array<GraphQLError> => []);
-
-        // TODO: Can we simplify this error matching?
-        (bundledResponse.errors || []).forEach((error: GraphQLError): void => {
-          let found = false;
-
-          /* eslint-disable unicorn/no-for-loop */
-          for (let i = 0; i < fieldMap.length; i++) {
-            const map = fieldMap[i];
-
-            for (const k in map) {
-              if (error.path[0] === map[k]) {
-                found = true;
-
-                errors[i].push(error);
-              }
-            }
-          }
-          /* eslint-enable unicorn/no-for-loop */
-
-          if (!found) {
-            errors.forEach((item: Array<GraphQLError>): void => {
-              item.push(error);
-            });
-          }
-        });
-
-        fieldMap.forEach((fields: RenameMap, i: number): void => {
-          if (errors[i].length > 0) {
-            return promises[i].reject(queryError(errors[i]));
-          }
-
-          const data = {};
-
-          /* eslint-disable guard-for-in */
-          for (const k in fields) {
-            data[k] = bundledResponse.data[fields[k]];
-          }
-          /* eslint-enable guard-for-in */
-
-          promises[i].resolve(data);
-        });
-      }, (error: Error): void =>
-        promises.forEach(({ reject }: { reject: RejectFn }): void => reject(error))
-      );
-  };
 
   const fire = (): void => {
     // TODO: Control how this chaining is done
@@ -137,7 +187,7 @@ export const createClient = ({ runQuery, debounce = 50 }: ClientArgs): Client<{}
       // ensure ordering of the group operation types
       const r = pending.reduce(
         (p: Promise<void>, group: Group): Promise<void> =>
-          p.then((): Promise<void> => runGroup(group)),
+          p.then((): Promise<void> => runGroup(runQuery, group)),
         resolved
       );
 
@@ -150,44 +200,16 @@ export const createClient = ({ runQuery, debounce = 50 }: ClientArgs): Client<{}
   };
 
   return <P, R: {}>(
-    queryAst: Query<P, R>,
-    queryParameters: P,
+    query: Query<P, R>,
+    parameters: P,
     // eslint-disable-next-line no-unused-vars
     options?: {} = {}
   ): Promise<R> => {
-    // TODO: Split into a grouped queue without any timers, and then wrap it
-    // with timer logic
-    const newBundle = createBundle(queryAst);
-
     return new Promise<any>((resolve: ResolveFn, reject: RejectFn): void => {
+      enqueue(pending, createBundle(query), parameters, resolve, reject);
+
       if (!timer) {
         timer = setTimeout(fire, debounce);
-      }
-
-      if (pending.length > 0 &&
-        pending[pending.length - 1].bundle.operation === newBundle.operation
-      ) {
-        const pendingGroup = pending[pending.length - 1];
-        const { bundle, renamedVariables, renamedFields } =
-          mergeBundle(pendingGroup.bundle, newBundle);
-
-        pendingGroup.bundle = bundle;
-
-        /* eslint-disable guard-for-in */
-        for (const k in renamedVariables) {
-          if (typeof queryParameters !== "object" || !queryParameters) {
-            // FIXME: Proper error message
-            throw new Error("FOOBAR");
-          }
-
-          pendingGroup.variables[renamedVariables[k]] = queryParameters[k];
-        }
-        /* eslint-enable guard-for-in */
-
-        pendingGroup.fieldMap.push(renamedFields);
-        pendingGroup.promises.push({ resolve, reject });
-      } else {
-        pending.push(createPending(newBundle, queryParameters, resolve, reject));
       }
     });
   };

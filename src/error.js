@@ -2,6 +2,11 @@
 
 import type { GraphQLError } from "./query";
 
+export type MissingVariableError = Error & {
+  name: "MissingVariableError",
+  variableName: string,
+};
+
 export type RequestError = Error & {
   name: "RequestError",
   response: Response,
@@ -54,6 +59,15 @@ export const queryError = (errors: Array<GraphQLError>): QueryError => {
 
   error.name = "QueryError";
   error.errors = errors;
+
+  return error;
+};
+
+export const missingVariableError = (name: string): MissingVariableError => {
+  const error: MissingVariableError = (new Error(`Variable '${name}' is missing.`): any);
+
+  error.name = "MissingVariableError";
+  error.variableName = name;
 
   return error;
 };
