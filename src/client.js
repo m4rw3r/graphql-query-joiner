@@ -7,11 +7,10 @@ import { print } from "graphql/language";
 import { createBundle, createDocument, mergeBundle } from "./bundle";
 import { missingVariableError, parseError, queryError, requestError } from "./error";
 
-// TODO: Simplify or remove the Response requirement?
 export type QueryRunner = ({
   query: string,
   variables: { [key: string]: mixed },
-}) => Promise<Response>;
+}) => Promise<GraphQLResponse<mixed>>;
 
 export type ClientArgs = {
   runQuery: QueryRunner,
@@ -77,6 +76,10 @@ const createGroup = (
   };
 };
 
+/**
+ * Handles a fetch-Response and parses it into a GraphQLResponse,
+ * throws if the request is not ok or if JSON fails to parse.
+ */
 export const handleResponse = <R>(response: Response): Promise<R> =>
   response.text().then((bodyText: string): R => {
     if (!response.ok) {
@@ -126,8 +129,7 @@ export const runGroup = (
   return runQuery({
     query: print(createDocument(bundle)),
     variables,
-  }).then(handleResponse)
-    .then((bundledResponse: GraphQLResponse<any>): void => {
+  }).then((bundledResponse: GraphQLResponse<any>): void => {
       const errors = fieldMap.map((): Array<GraphQLError> => []);
 
       // TODO: Can we simplify this error matching?

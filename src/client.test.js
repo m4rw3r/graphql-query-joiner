@@ -4,7 +4,7 @@ import test from "ava";
 import dummee from "dummee";
 import { parse, print } from "graphql/language";
 import { createBundle, createDocument } from "./bundle";
-import { enqueue } from "./client";
+import { enqueue, handleResponse } from "./client";
 
 test("enqueue missing parameters", t => {
   const resolve = dummee();
@@ -158,4 +158,100 @@ test("enqueue first", t => {
   t.deepEqual(reject2.calls, []);
   t.deepEqual(resolve3.calls, []);
   t.deepEqual(reject3.calls, []);
+});
+
+test("handleResponse text throw not ok", async t => {
+  const err = new Error("Failed test-reading");
+  const response = {
+    ok: false,
+    status: 123,
+    text: dummee(() => new Promise((resolve, reject) => reject(err))),
+  };
+
+  const error = await t.throwsAsync(async () => {
+    await handleResponse((response: any));
+  }, { message: "Failed test-reading" });
+
+  t.is(error, err);
+  t.deepEqual(response.text.calls, [
+    { args: [] },
+  ]);
+});
+
+test("handleResponse text throw ok", async t => {
+  const err = new Error("Failed test-reading");
+  const response = {
+    ok: true,
+    status: 200,
+    text: dummee(() => new Promise((resolve, reject) => reject(err))),
+  };
+
+  const error = await t.throwsAsync(
+    async () => handleResponse((response: any)),
+    { message: "Failed test-reading" }
+  );
+
+  t.is(error, err);
+  t.deepEqual(response.text.calls, [
+    { args: [] },
+  ]);
+});
+
+test("handleResponse not ok", async t => {
+  const response = {
+    ok: false,
+    status: 123,
+    text: dummee(() => new Promise(resolve => resolve(`{"data": { "info": true } }`))),
+  };
+
+  const error = await t.throwsAsync(
+    async () => handleResponse((response: any)),
+    { name: "RequestError", message: "Received status code 123" }
+  );
+
+  t.is(error.statusCode, 123);
+  t.is(error.bodyText, `{"data": { "info": true } }`);
+  t.is(error.response, response);
+  t.deepEqual(response.text.calls, [
+    { args: [] },
+  ]);
+});
+
+test("handleResponse ok bad JSON", async t => {
+  const response = {
+    ok: true,
+    status: 200,
+    text: dummee(() => new Promise(resolve => resolve("The text"))),
+  };
+
+  const error = await t.throwsAsync(
+    async () => handleResponse((response: any)),
+    { name: "ParseError", message: "SyntaxError: Unexpected token T in JSON at position 0" }
+  );
+
+  t.is(error.statusCode, 200);
+  t.is(error.bodyText, "The text");
+  t.is(error.response, response);
+  t.deepEqual(response.text.calls, [
+    { args: [] },
+  ]);
+});
+
+test("handleResponse", async t => {
+  const response = {
+    ok: true,
+    status: 200,
+    text: dummee(() => new Promise(resolve => resolve(`{"data": { "info": true } }`))),
+  };
+
+  const data = await handleResponse((response: any));
+
+  t.deepEqual(data, {
+    data: {
+      info: true,
+    },
+  });
+  t.deepEqual(response.text.calls, [
+    { args: [] },
+  ]);
 });
