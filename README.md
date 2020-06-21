@@ -10,7 +10,7 @@
 
 ```javascript
 import { parse } from "graphql";
-import { createClient, handleResponse } from "@awardit/graphql-client";
+import { createClient, handleFetchResponse } from "@awardit/graphql-client";
 
 // Or use gql template strings or any other tool to compile these into AST
 const myQuery = parse(`query {
@@ -26,7 +26,7 @@ const client = createClient({
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ query, variables }),
-  }).then(handleResponse),
+  }).then(handleFetchResponse),
   debounce: 5,
 });
 

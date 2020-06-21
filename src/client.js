@@ -80,7 +80,7 @@ const createGroup = (
  * Handles a fetch-Response and parses it into a GraphQLResponse,
  * throws if the request is not ok or if JSON fails to parse.
  */
-export const handleResponse = <R>(response: Response): Promise<R> =>
+export const handleFetchResponse = <R>(response: Response): Promise<R> =>
   response.text().then((bodyText: string): R => {
     if (!response.ok) {
       throw requestError(response, bodyText, `Received status code ${response.status}`);

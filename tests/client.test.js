@@ -4,7 +4,7 @@ import test from "ava";
 import dummee from "dummee";
 import { parse, print } from "graphql/language";
 import { createBundle, createDocument } from "../src/bundle";
-import { enqueue, handleResponse, groupErrors } from "../src/client";
+import { enqueue, handleFetchResponse, groupErrors } from "../src/client";
 
 test("enqueue missing parameters", t => {
   const resolve = dummee();
@@ -265,7 +265,7 @@ test("enqueue different", t => {
   t.deepEqual(reject3.calls, []);
 });
 
-test("handleResponse text throw not ok", async t => {
+test("handleFetchResponse text throw not ok", async t => {
   const err = new Error("Failed test-reading");
   const response = {
     ok: false,
@@ -274,7 +274,7 @@ test("handleResponse text throw not ok", async t => {
   };
 
   const error = await t.throwsAsync(async () => {
-    await handleResponse((response: any));
+    await handleFetchResponse((response: any));
   }, { message: "Failed test-reading" });
 
   t.is(error, err);
@@ -283,7 +283,7 @@ test("handleResponse text throw not ok", async t => {
   ]);
 });
 
-test("handleResponse text throw ok", async t => {
+test("handleFetchResponse text throw ok", async t => {
   const err = new Error("Failed test-reading");
   const response = {
     ok: true,
@@ -292,7 +292,7 @@ test("handleResponse text throw ok", async t => {
   };
 
   const error = await t.throwsAsync(
-    async () => handleResponse((response: any)),
+    async () => handleFetchResponse((response: any)),
     { message: "Failed test-reading" }
   );
 
@@ -302,7 +302,7 @@ test("handleResponse text throw ok", async t => {
   ]);
 });
 
-test("handleResponse not ok", async t => {
+test("handleFetchResponse not ok", async t => {
   const response = {
     ok: false,
     status: 123,
@@ -310,7 +310,7 @@ test("handleResponse not ok", async t => {
   };
 
   const error = await t.throwsAsync(
-    async () => handleResponse((response: any)),
+    async () => handleFetchResponse((response: any)),
     { name: "RequestError", message: "Received status code 123" }
   );
 
@@ -322,7 +322,7 @@ test("handleResponse not ok", async t => {
   ]);
 });
 
-test("handleResponse ok bad JSON", async t => {
+test("handleFetchResponse ok bad JSON", async t => {
   const response = {
     ok: true,
     status: 200,
@@ -330,7 +330,7 @@ test("handleResponse ok bad JSON", async t => {
   };
 
   const error = await t.throwsAsync(
-    async () => handleResponse((response: any)),
+    async () => handleFetchResponse((response: any)),
     { name: "ParseError", message: "SyntaxError: Unexpected token T in JSON at position 0" }
   );
 
@@ -342,14 +342,14 @@ test("handleResponse ok bad JSON", async t => {
   ]);
 });
 
-test("handleResponse", async t => {
+test("handleFetchResponse", async t => {
   const response = {
     ok: true,
     status: 200,
     text: dummee(() => new Promise(resolve => resolve(`{"data": { "info": true } }`))),
   };
 
-  const data = await handleResponse((response: any));
+  const data = await handleFetchResponse((response: any));
 
   t.deepEqual(data, {
     data: {

@@ -9,5 +9,5 @@ export type {
 } from "./query";
 export type { Client, ClientArgs, QueryRunner } from "./client";
 
-export { createClient, handleResponse } from "./client";
+export { createClient, handleFetchResponse } from "./client";
 
