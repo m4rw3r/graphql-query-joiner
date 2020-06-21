@@ -21,5 +21,3 @@ export type GraphQLResponse<T> = {
   data: T,
 };
 
-export type RenameMap = {| +[key: string]: string |};
-

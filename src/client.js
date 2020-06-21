@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { GraphQLResponse, GraphQLError, Query, RenameMap } from "./query";
+import type { GraphQLResponse, GraphQLError, Query } from "./query";
 import type { QueryBundle } from "./bundle";
 
 import { print } from "graphql/language";
@@ -25,6 +25,8 @@ export type Client<-O> = <P, R: {}>(
 
 type ResolveFn = (value: any) => void;
 type RejectFn = (error: Error) => void;
+
+type RenameMap = {| +[key: string]: string |};
 
 export type Group = {
   bundle: QueryBundle,
