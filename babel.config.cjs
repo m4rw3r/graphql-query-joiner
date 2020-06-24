@@ -13,5 +13,6 @@ module.exports = {
     // We cannot use the preset since this must go before class-properties to
     // avoid emitting `this.propertyName = void 0;` for typed class properties
     ["@babel/plugin-transform-flow-strip-types"],
+    ["babel-plugin-transform-async-to-promises"],
   ],
 };

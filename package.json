@@ -35,6 +35,7 @@
     "@rollup/plugin-node-resolve": "^8.0.1",
     "ava": "^3.9.0",
     "babel-eslint": "^10.1.0",
+    "babel-plugin-transform-async-to-promises": "^0.8.15",
     "eslint-config-xo-flow": "^0.2.0",
     "eslint-plugin-flowtype": "^5.1.3",
     "esm": "^3.2.25",
@@ -118,6 +119,7 @@
         "error",
         "declaration"
       ],
+      "import/extensions": ["error", "never", { "graphql": "always" }],
       "max-len": [
         "error",
         {

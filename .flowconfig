@@ -10,3 +10,4 @@ uninitialized-instance-property=error
 include_warnings=true
 esproposal.optional_chaining=enable
 experimental.const_params=true
+module.name_mapper.extension='graphql' -> '<PROJECT_ROOT>/tests/graphql_stub.js.flow'
