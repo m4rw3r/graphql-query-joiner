@@ -24,6 +24,9 @@
     "test:xo": "xo",
     "watch": "nodemon -w src -w test --exec \"npm run -q test || true\""
   },
+  "dependencies": {
+    "@rollup/pluginutils": "^3.1.0"
+  },
   "peerDependencies": {
     "graphql": "^15.0.0"
   },
@@ -147,8 +150,5 @@
       "valid-jsdoc": "off"
     },
     "space": 2
-  },
-  "dependencies": {
-    "@rollup/pluginutils": "^3.1.0"
   }
 }
