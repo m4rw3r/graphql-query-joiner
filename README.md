@@ -25,7 +25,6 @@ export default {
 
 ```graphql
 # myqueries.graphql:
-
 query films {
   allFilms {
     title
@@ -51,7 +50,10 @@ query filmsWithPerson($name: String!) {
 import { films, filmsWithPerson } from "./myqueries.graphql";
 import { client } from "./ast-consuming-graphql-client";
 
-const { data: { Person: { Films: filmsWithLuke } } } = await client(films, { name: "Luke Skywalker" });
+const { data: { Person: { Films: filmsWithLuke } } } = await client(
+  filmsWithPerson,
+  { name: "Luke Skywalker" }
+);
 
 console.log("Films with Luke Skywalker: ", filmsWithLuke);
 
