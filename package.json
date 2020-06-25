@@ -1,5 +1,5 @@
 {
-  "name": "@awardit/rollup-plugin-graphql-ast-import",
+  "name": "rollup-plugin-graphql-ast-import",
   "version": "0.1.0",
   "description": "Rollup plugin enabling imports of AST from .graphql files.",
   "authors": [
