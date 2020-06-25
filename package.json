@@ -2,6 +2,7 @@
   "name": "rollup-plugin-graphql-ast-import",
   "version": "0.1.0",
   "description": "Rollup plugin enabling imports of AST from .graphql files.",
+  "keywords": ["rollup", "import", "graphql", "ast"],
   "authors": [
     "Martin Wernstål <m4rw3r@gmail.com>"
   ],
