@@ -24,6 +24,9 @@
     "test:xo": "xo",
     "watch": "nodemon -w src -w test --exec \"npm run -q test || true\""
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "peerDependencies": {
     "graphql": "^15.0.0"
   },
