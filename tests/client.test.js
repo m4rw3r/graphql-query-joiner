@@ -4,7 +4,8 @@ import test from "ava";
 import dummee from "dummee";
 import { parse, print } from "graphql/language";
 import { createBundle, createDocument } from "../src/bundle";
-import { enqueue, handleFetchResponse, groupErrors } from "../src/client";
+import { enqueue, handleFetchResponse, groupErrors, runGroup } from "../src/client";
+import { queryError } from "../src/error";
 
 test("enqueue missing parameters", t => {
   const resolve = dummee();
@@ -390,4 +391,298 @@ test("groupError", t => {
   t.deepEqual(groupErrors([{ message: "foo", path: ["bar"] }], [["foo"], ["bar"]]), [[], [{ message: "foo", path: ["bar"] }]]);
   t.deepEqual(groupErrors([{ message: "foo", path: ["baz"] }], [["foo"], ["bar"]]), [[{ message: "foo", path: ["baz"] }], [{ message: "foo", path: ["baz"] }]]);
   t.deepEqual(groupErrors([{ message: "foo", path: ["foo", "bar"] }], [["foo"], ["bar"]]), [[{ message: "foo", path: ["foo", "bar"] }], []]);
+});
+
+test("runGroup", async t => {
+  const info = { name: "info" };
+  const resolve = dummee();
+  const reject = dummee();
+  const runQuery = dummee(() => {
+    return new Promise(resolve => resolve({ data: { info } }));
+  });
+  const group = {
+    bundle: createBundle(parse("{ info }")),
+    variables: {},
+    fieldMap: [{ info: "info" }],
+    promises: [{ resolve, reject }],
+  };
+
+  const result = runGroup(runQuery, group);
+
+  t.true(result instanceof Promise);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, []);
+  t.snapshot(runQuery.calls);
+
+  const data = await result;
+
+  t.is(undefined, data);
+  t.deepEqual(resolve.calls, [{
+    args: [
+      {
+        info: {
+          name: "info",
+        },
+      },
+    ],
+  }]);
+  t.deepEqual(reject.calls, []);
+  t.deepEqual(resolve.calls, [{
+    args: [
+      {
+        info: {
+          name: "info",
+        },
+      },
+    ],
+  }]);
+  t.is(resolve.calls[0].args[0].info, info);
+});
+
+test("runGroup error", async t => {
+  const resolve = dummee();
+  const reject = dummee();
+  const resolve2 = dummee();
+  const reject2 = dummee();
+  const error = new Error("test error");
+  const runQuery = dummee(() => {
+    return new Promise((resolve, reject) => reject(error));
+  });
+  const group = {
+    bundle: createBundle(parse("{ info }")),
+    variables: {},
+    fieldMap: [
+      { info: "info" },
+      { info: "info_1" },
+    ],
+    promises: [
+      { resolve, reject },
+      { resolve: resolve2, reject: reject2 },
+    ],
+  };
+
+  const result = runGroup(runQuery, group);
+
+  t.true(result instanceof Promise);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, []);
+  t.deepEqual(resolve2.calls, []);
+  t.deepEqual(reject2.calls, []);
+  t.snapshot(runQuery.calls);
+
+  const data = await result;
+
+  t.is(undefined, data);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, [{
+    args: [
+      error,
+    ],
+  }]);
+  t.deepEqual(resolve2.calls, []);
+  t.deepEqual(reject2.calls, [{
+    args: [
+      error,
+    ],
+  }]);
+});
+
+test("runGroup split", async t => {
+  const info = { name: "info" };
+  const info2 = { name: "info2" };
+  const resolve = dummee();
+  const reject = dummee();
+  const resolve2 = dummee();
+  const reject2 = dummee();
+  const runQuery = dummee(() => {
+    return new Promise(resolve => resolve({
+      data: {
+        info,
+        "info_1": info2,
+      },
+    }));
+  });
+  const group = {
+    bundle: createBundle(parse("{ info }")),
+    variables: {},
+    fieldMap: [
+      { info: "info" },
+      { info: "info_1" },
+    ],
+    promises: [
+      { resolve, reject },
+      { resolve: resolve2, reject: reject2 },
+    ],
+  };
+
+  const result = runGroup(runQuery, group);
+
+  t.true(result instanceof Promise);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, []);
+  t.deepEqual(resolve2.calls, []);
+  t.deepEqual(reject2.calls, []);
+  t.snapshot(runQuery.calls);
+
+  const data = await result;
+
+  t.is(undefined, data);
+  t.deepEqual(reject.calls, []);
+  t.deepEqual(resolve.calls, [{
+    args: [
+      {
+        info: {
+          name: "info",
+        },
+      },
+    ],
+  }]);
+  t.is(resolve.calls[0].args[0].info, info);
+  t.deepEqual(reject2.calls, []);
+  t.deepEqual(resolve2.calls, [{
+    args: [
+      {
+        info: {
+          name: "info2",
+        },
+      },
+    ],
+  }]);
+  t.is(resolve2.calls[0].args[0].info, info2);
+});
+
+test("runGroup error split", async t => {
+  const info = { name: "info" };
+  const info2 = { name: "info2" };
+  const resolve = dummee();
+  const reject = dummee();
+  const resolve2 = dummee();
+  const reject2 = dummee();
+  const error1 = {
+    message: "This error",
+    path: ["info_1"],
+  };
+  const runQuery = dummee(() => {
+    return new Promise(resolve => resolve({
+      errors: [
+        error1,
+      ],
+      data: {
+        info,
+      },
+    }));
+  });
+  const group = {
+    bundle: createBundle(parse("{ info }")),
+    variables: {},
+    fieldMap: [
+      { info: "info" },
+      { info: "info_1" },
+    ],
+    promises: [
+      { resolve, reject },
+      { resolve: resolve2, reject: reject2 },
+    ],
+  };
+
+  const result = runGroup(runQuery, group);
+
+  t.true(result instanceof Promise);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, []);
+  t.deepEqual(resolve2.calls, []);
+  t.deepEqual(reject2.calls, []);
+  t.snapshot(runQuery.calls);
+
+  const data = await result;
+
+  t.is(undefined, data);
+  t.deepEqual(reject.calls, []);
+  t.deepEqual(resolve.calls, [{
+    args: [
+      {
+        info: {
+          name: "info",
+        },
+      },
+    ],
+  }]);
+  t.is(resolve.calls[0].args[0].info, info);
+  t.deepEqual(reject2.calls, [{
+    args: [
+      queryError([error1]),
+    ],
+  }]);
+  t.deepEqual(resolve2.calls, []);
+});
+
+test("runGroup error split multiple", async t => {
+  const info = { name: "info" };
+  const info2 = { name: "info2" };
+  const resolve = dummee();
+  const reject = dummee();
+  const resolve2 = dummee();
+  const reject2 = dummee();
+  const error0 = {
+    message: "This error",
+    path: ["info"],
+  };
+  const error1 = {
+    message: "This error 1",
+    path: ["info_1"],
+  };
+  const error2 = {
+    message: "This error 2",
+    path: [],
+  };
+  const runQuery = dummee(() => {
+    return new Promise(resolve => resolve({
+      errors: [
+        error0,
+        error1,
+        error2,
+      ],
+      data: {
+        info,
+        "info_1": info2,
+      },
+    }));
+  });
+  const group = {
+    bundle: createBundle(parse("{ info }")),
+    variables: {},
+    fieldMap: [
+      { info: "info" },
+      { info: "info_1" },
+    ],
+    promises: [
+      { resolve, reject },
+      { resolve: resolve2, reject: reject2 },
+    ],
+  };
+
+  const result = runGroup(runQuery, group);
+
+  t.true(result instanceof Promise);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, []);
+  t.deepEqual(resolve2.calls, []);
+  t.deepEqual(reject2.calls, []);
+  t.snapshot(runQuery.calls);
+
+  const data = await result;
+
+  t.is(undefined, data);
+  t.deepEqual(reject.calls, [{
+    args: [
+      queryError([error0, error2]),
+    ],
+  }]);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject2.calls, [{
+    args: [
+      queryError([error1, error2]),
+    ],
+  }]);
+  t.deepEqual(resolve2.calls, []);
 });
