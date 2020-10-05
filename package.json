@@ -1,6 +1,6 @@
 {
   "name": "@awardit/graphql-ast-client",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Experimental small GraphQL client adaptable to HTTP/1.x or HTTP/2.x",
   "authors": [
     "Martin Wernstål <m4rw3r@gmail.com>"
