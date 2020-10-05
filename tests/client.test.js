@@ -553,7 +553,6 @@ test("runGroup split", async t => {
 
 test("runGroup error split", async t => {
   const info = { name: "info" };
-  const info2 = { name: "info2" };
   const resolve = dummee();
   const reject = dummee();
   const resolve2 = dummee();
