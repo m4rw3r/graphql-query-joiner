@@ -1,11 +1,16 @@
 /* @flow */
 
+import type { Client } from "../src";
+
 import test from "ava";
 import dummee from "dummee";
 import { parse, print } from "graphql/language";
 import { createBundle, createDocument } from "../src/bundle";
 import { enqueue, handleFetchResponse, groupErrors, runGroup } from "../src/client";
 import { queryError } from "../src/error";
+
+// Type tests
+((_query: any, _vars: any): Promise<any> => Promise.resolve("Dummy client"): Client<{}>);
 
 test("enqueue missing parameters", t => {
   const resolve = dummee();
