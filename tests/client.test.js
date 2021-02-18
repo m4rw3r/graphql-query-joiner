@@ -690,3 +690,39 @@ test("runGroup error split multiple", async t => {
   }]);
   t.deepEqual(resolve2.calls, []);
 });
+
+test("Run empty group with empty response", async t => {
+  const resolve = dummee();
+  const reject = dummee();
+  const error1 = {
+    message: "This error",
+    path: ["info_1"],
+  };
+  const runQuery = () => Promise.resolve({
+    errors: [error1],
+  });
+  const group = {
+    bundle: createBundle(parse("{ info }")),
+    variables: {},
+    fieldMap: [{ info: "info" }],
+    promises: [{ resolve, reject }],
+  };
+
+  const result = runGroup(runQuery, group);
+
+  t.true(result instanceof Promise);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, []);
+
+  const data = await result;
+
+  t.is(undefined, data);
+  t.deepEqual(resolve.calls, []);
+  t.deepEqual(reject.calls, [
+    {
+      args: [
+        queryError([error1]),
+      ],
+    },
+  ]);
+});

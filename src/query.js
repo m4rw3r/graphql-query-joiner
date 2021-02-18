@@ -19,5 +19,7 @@ export type GraphQLError = {
 export type GraphQLResponse<T> = {
   errors?: Array<GraphQLError>,
   data: T,
+} | {
+  errors: Array<GraphQLError>,
 };
 

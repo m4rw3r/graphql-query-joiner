@@ -159,17 +159,19 @@ export const runGroup = (
   );
 
   fieldMap.forEach((fields: RenameMap, i: number): void => {
+    const data = {};
+
+    if (typeof bundledResponse.data === "object" && bundledResponse.data) {
+      /* eslint-disable guard-for-in */
+      for (const k in fields) {
+        data[k] = bundledResponse.data[fields[k]];
+      }
+      /* eslint-enable guard-for-in */
+    }
+
     if (errors[i].length > 0) {
       return promises[i].reject(queryError(errors[i]));
     }
-
-    const data = {};
-
-    /* eslint-disable guard-for-in */
-    for (const k in fields) {
-      data[k] = bundledResponse.data[fields[k]];
-    }
-    /* eslint-enable guard-for-in */
 
     promises[i].resolve(data);
   });
