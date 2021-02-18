@@ -24,6 +24,7 @@ export type ParseError = Error & {
 export type QueryError = Error & {
   name: "QueryError",
   errors: Array<GraphQLError>,
+  queryData: mixed,
 };
 
 const graphqlErrorMessage = ({ message }: GraphQLError): string => message;
@@ -54,11 +55,15 @@ export const parseError = (response: Response, bodyText: string, message: mixed)
   return error;
 };
 
-export const queryError = (errors: Array<GraphQLError>): QueryError => {
+export const queryError = (
+  errors: Array<GraphQLError>,
+  queryData: {[key: string]: mixed}
+): QueryError => {
   const error: QueryError = (new Error(errors.map(graphqlErrorMessage).join(", ")): any);
 
   error.name = "QueryError";
   error.errors = errors;
+  error.queryData = queryData;
 
   return error;
 };

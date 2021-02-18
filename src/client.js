@@ -170,7 +170,7 @@ export const runGroup = (
     }
 
     if (errors[i].length > 0) {
-      return promises[i].reject(queryError(errors[i]));
+      return promises[i].reject(queryError(errors[i], data));
     }
 
     promises[i].resolve(data);

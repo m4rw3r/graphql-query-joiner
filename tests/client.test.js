@@ -614,7 +614,7 @@ test("runGroup error split", async t => {
   t.is(resolve.calls[0].args[0].info, info);
   t.deepEqual(reject2.calls, [{
     args: [
-      queryError([error1]),
+      queryError([error1], { info: undefined }),
     ],
   }]);
   t.deepEqual(resolve2.calls, []);
@@ -679,13 +679,13 @@ test("runGroup error split multiple", async t => {
   t.is(undefined, data);
   t.deepEqual(reject.calls, [{
     args: [
-      queryError([error0, error2]),
+      queryError([error0, error2], { info }),
     ],
   }]);
   t.deepEqual(resolve.calls, []);
   t.deepEqual(reject2.calls, [{
     args: [
-      queryError([error1, error2]),
+      queryError([error1, error2], { info: info2 }),
     ],
   }]);
   t.deepEqual(resolve2.calls, []);
@@ -721,7 +721,7 @@ test("Run empty group with empty response", async t => {
   t.deepEqual(reject.calls, [
     {
       args: [
-        queryError([error1]),
+        queryError([error1], {}),
       ],
     },
   ]);
