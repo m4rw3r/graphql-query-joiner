@@ -25,6 +25,9 @@ type Options = {
 const COMMENT_PATTERN = /#([^\n\r]*)/g;
 const IMPORT_PATTERN = /import\s*{((?:\s*[_A-Za-z]\w*\s*,?\s*)+)}\s*from\s*(['"])([^\n\r]*)\2/;
 
+const makeDocument = (name: string, definitions: string): string =>
+  `export const ${name} = {\n  kind: ${JSON.stringify(Kind.DOCUMENT)},\n  definitions: ${definitions}\n};`;
+
 export function graphql(options: Options = {}): RollupPlugin {
   const filter = createFilter(options.include || "**/*.graphql", options.exclude);
 
@@ -69,17 +72,22 @@ export function graphql(options: Options = {}): RollupPlugin {
           },
         });
 
-        // All imports are documents, so merge the definitions
-        return `export const ${name} = {
-  kind: ${JSON.stringify(Kind.DOCUMENT)},
-  definitions: [].concat(${used.map((name: string): string => `${name}.definitions`).concat([JSON.stringify(d)]).join(", ")})
-};`;
+        // All imports are documents, so merge the definitions if there are any
+        const definitions = `[].concat(${
+          used.map((name: string): string => `${name}.definitions`)
+            .concat([JSON.stringify(d)])
+            .join(", ")})`;
+
+        return makeDocument(name, definitions);
       });
 
-      const code = imports.join("\n") + "\n" + definitions.join("\n");
+      const parts = [
+        imports.join("\n"),
+        definitions.join("\n"),
+      ];
 
       return {
-        code,
+        code: parts.filter(Boolean).join("\n"),
         // TODO: Source maps
         map: { mappings: "" },
       };
