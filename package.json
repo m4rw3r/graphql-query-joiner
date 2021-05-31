@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-graphql-ast-import",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Rollup plugin enabling imports of operations as AST from .graphql files.",
   "keywords": [
     "rollup-plugin",
