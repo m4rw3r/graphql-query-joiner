@@ -22,11 +22,52 @@ type Options = {
   exclude?: string | RegExp | Array<string | RegExp>,
 };
 
+const hasOwnProperty = Object.prototype.hasOwnProperty;
 const COMMENT_PATTERN = /#([^\n\r]*)/g;
+const JS_IDENTIFIER_PATTERN = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 const IMPORT_PATTERN = /import\s*{((?:\s*[_A-Za-z]\w*\s*,?\s*)+)}\s*from\s*(['"])([^\n\r]*)\2/;
+const IMPORT_GRAPHQL_LANGUAGE = `import { Kind as __Kind } from "graphql/language";`;
 
 const makeDocument = (name: string, definitions: string): string =>
-  `export const ${name} = {\n  kind: ${JSON.stringify(Kind.DOCUMENT)},\n  definitions: ${definitions}\n};`;
+  `export const ${name} = {\n  kind: __Kind.DOCUMENT,\n  definitions: ${definitions}\n};`;
+
+const definitionOf = (name: string): string => `${name}.definitions`;
+
+const getKeyByValue = (object: { [k: string]: mixed }, value: mixed): ?string =>
+  Object.keys(object).find((key: string): boolean => object[key] === value);
+
+/**
+ * stringifyNode imitates JSON.stringify but only for GraphQL AST, and will
+ * replace kind-values with the imported constants as well as not use
+ * stringified-keys if identifiers are valid.
+ */
+const stringifyNode = (d: mixed): string => {
+  if (Array.isArray(d)) {
+    return `[${d.map(stringifyNode).join(",")}]`;
+  }
+
+  if (!d || typeof d !== "object") {
+    return JSON.stringify(d) || "undefined";
+  }
+
+  const fields = [];
+
+  if (hasOwnProperty.call(d, "kind")) {
+    const kind = getKeyByValue(Kind, d.kind)
+
+    fields.push(`kind:${kind ? `__Kind.${kind}` : JSON.stringify(d.kind) || ""}`);
+  }
+
+  for (const k of Object.keys(d)) {
+    if (k !== "kind" && d[k] !== undefined) {
+      fields.push(
+        `${JS_IDENTIFIER_PATTERN.test(k) ? k : JSON.stringify(k)}:${stringifyNode(d[k])}`
+      );
+    }
+  }
+
+  return `{${fields.join(",")}}`;
+};
 
 export function graphql(options: Options = {}): RollupPlugin {
   const filter = createFilter(options.include || "**/*.graphql", options.exclude);
@@ -76,14 +117,15 @@ export function graphql(options: Options = {}): RollupPlugin {
         const definitions = used.length > 0 ?
           `[].concat(${
             used.map(definitionOf)
-              .concat([JSON.stringify(d)])
+              .concat([stringifyNode(d)])
               .join(", ")})` :
-          `[${JSON.stringify(d)}]`;
+          `[${stringifyNode(d)}]`;
 
         return makeDocument(name, definitions);
       });
 
       const parts = [
+        IMPORT_GRAPHQL_LANGUAGE,
         imports.join("\n"),
         definitions.join("\n"),
       ];
