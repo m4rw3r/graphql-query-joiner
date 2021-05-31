@@ -2,7 +2,12 @@
   "name": "rollup-plugin-graphql-ast-import",
   "version": "0.1.0",
   "description": "Rollup plugin enabling imports of operations as AST from .graphql files.",
-  "keywords": ["rollup-plugin", "import", "graphql", "ast"],
+  "keywords": [
+    "rollup-plugin",
+    "import",
+    "graphql",
+    "ast"
+  ],
   "authors": [
     "Martin Wernstål <m4rw3r@gmail.com>"
   ],
@@ -26,7 +31,7 @@
     "watch": "nodemon -w src -w test --exec \"npm run -q test || true\""
   },
   "dependencies": {
-    "@rollup/pluginutils": "^3.1.0"
+    "@rollup/pluginutils": "^4.1.0"
   },
   "peerDependencies": {
     "graphql": "^15.0.0"
@@ -36,14 +41,14 @@
     "@babel/plugin-transform-flow-strip-types": "^7.10.1",
     "@babel/preset-env": "^7.10.2",
     "@rollup/plugin-babel": "^5.0.3",
-    "@rollup/plugin-node-resolve": "^8.0.1",
+    "@rollup/plugin-node-resolve": "^13.0.0",
     "ava": "^3.9.0",
     "babel-eslint": "^10.1.0",
     "babel-plugin-transform-async-to-promises": "^0.8.15",
     "eslint-config-xo-flow": "^0.2.0",
     "eslint-plugin-flowtype": "^5.1.3",
     "esm": "^3.2.25",
-    "flow-bin": "^0.127.0",
+    "flow-bin": "^0.152.0",
     "graphql": "^15.1.0",
     "nodemon": "^2.0.4",
     "npm-run-all": "^4.1.5",
@@ -123,7 +128,13 @@
         "error",
         "declaration"
       ],
-      "import/extensions": ["error", "never", { "graphql": "always" }],
+      "import/extensions": [
+        "error",
+        "never",
+        {
+          "graphql": "always"
+        }
+      ],
       "max-len": [
         "error",
         {
