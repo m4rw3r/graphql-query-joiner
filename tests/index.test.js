@@ -21,6 +21,21 @@ test("simple", async t => {
   t.snapshot(code);
 });
 
+test("fragment", async t => {
+  const bundle = await rollup({
+    input: "fixtures/fragment/main.js",
+    plugins: [
+      graphql(),
+    ],
+  });
+
+  const { output: [{ code }] } = await bundle.generate({
+    format: "esm",
+  });
+
+  t.snapshot(code);
+});
+
 test("schema", async t => {
   const bundle = await rollup({
     input: "fixtures/schema/main.js",

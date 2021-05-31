@@ -1,0 +1,10 @@
+
+fragment User on User {
+  name
+}
+
+query foo {
+  users {
+    ... User
+  }
+}
