@@ -73,10 +73,12 @@ export function graphql(options: Options = {}): RollupPlugin {
         });
 
         // All imports are documents, so merge the definitions if there are any
-        const definitions = `[].concat(${
-          used.map((name: string): string => `${name}.definitions`)
-            .concat([JSON.stringify(d)])
-            .join(", ")})`;
+        const definitions = used.length > 0 ?
+          `[].concat(${
+            used.map(definitionOf)
+              .concat([JSON.stringify(d)])
+              .join(", ")})` :
+          `[${JSON.stringify(d)}]`;
 
         return makeDocument(name, definitions);
       });
