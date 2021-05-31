@@ -3,7 +3,7 @@
 import type { DefinitionNode, FragmentSpreadNode } from "graphql/language";
 
 import { createFilter } from "@rollup/pluginutils";
-import { Kind, Source, parse, visit } from "graphql/language";
+import { Kind, Source, isTypeDefinitionNode, parse, visit } from "graphql/language";
 
 type TransformedSource = {
   code: string,
@@ -20,11 +20,12 @@ type RollupPlugin = {
 type Options = {
   include?: string | RegExp | Array<string | RegExp>,
   exclude?: string | RegExp | Array<string | RegExp>,
+  typeDefs?: string | false,
 };
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 const COMMENT_PATTERN = /#([^\n\r]*)/g;
-const JS_IDENTIFIER_PATTERN = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
+const JS_IDENTIFIER_PATTERN = /^[a-zA-Z_$][$\w]*$/;
 const IMPORT_PATTERN = /import\s*{((?:\s*[_A-Za-z]\w*\s*,?\s*)+)}\s*from\s*(['"])([^\n\r]*)\2/;
 const IMPORT_GRAPHQL_LANGUAGE = `import { Kind as __Kind } from "graphql/language";`;
 
@@ -37,7 +38,7 @@ const getKeyByValue = (object: { [k: string]: mixed }, value: mixed): ?string =>
   Object.keys(object).find((key: string): boolean => object[key] === value);
 
 /**
- * stringifyNode imitates JSON.stringify but only for GraphQL AST, and will
+ * StringifyNode imitates JSON.stringify but only for GraphQL AST, and will
  * replace kind-values with the imported constants as well as not use
  * stringified-keys if identifiers are valid.
  */
@@ -53,7 +54,7 @@ const stringifyNode = (d: mixed): string => {
   const fields = [];
 
   if (hasOwnProperty.call(d, "kind")) {
-    const kind = getKeyByValue(Kind, d.kind)
+    const kind = getKeyByValue(Kind, d.kind);
 
     fields.push(`kind:${kind ? `__Kind.${kind}` : JSON.stringify(d.kind) || ""}`);
   }
@@ -70,7 +71,8 @@ const stringifyNode = (d: mixed): string => {
 };
 
 export function graphql(options: Options = {}): RollupPlugin {
-  const filter = createFilter(options.include || "**/*.graphql", options.exclude);
+  const { include = "**/*.graphql", exclude, typeDefs = "typeDefs" } = options;
+  const filter = createFilter(include, exclude);
 
   return {
     name: "graphql-ast-import",
@@ -129,6 +131,17 @@ export function graphql(options: Options = {}): RollupPlugin {
         imports.join("\n"),
         definitions.join("\n"),
       ];
+
+      if (typeDefs) {
+        const typeDefinitions = ast.definitions.filter(isTypeDefinitionNode);
+
+        if (typeDefinitions.length > 0) {
+          parts.push(makeDocument(
+            typeDefs,
+            "[" + typeDefinitions.map(stringifyNode).join(", ") + "]"
+          ));
+        }
+      }
 
       return {
         code: parts.filter(Boolean).join("\n"),
