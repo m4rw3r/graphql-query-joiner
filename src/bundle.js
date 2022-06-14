@@ -13,9 +13,10 @@ import type {
   VariableDefinitionNode,
   VariableNode,
 } from "graphql/language";
-import type { Query } from "./query";
 
 import { Kind, print, visit } from "graphql/language";
+
+import type { Query } from "./query";
 
 export type QueryBundle = {
   +operation: OperationTypeNode,

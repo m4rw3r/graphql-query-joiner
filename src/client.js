@@ -1,9 +1,10 @@
 /* @flow */
 
+import { print } from "graphql/language";
+
 import type { GraphQLResponse, GraphQLError, Query } from "./query";
 import type { QueryBundle } from "./bundle";
 
-import { print } from "graphql/language";
 import { createBundle, createDocument, mergeBundle } from "./bundle";
 import { missingVariableError, parseError, queryError, requestError } from "./error";
 
@@ -35,8 +36,8 @@ export type Group = {
   promises: Array<{ resolve: ResolveFn, reject: RejectFn }>,
 };
 
-export const resolved: Promise<void> =
-  new Promise((resolve: ResolveFn): void => resolve(undefined));
+export const resolved: Promise<void>
+  = new Promise((resolve: ResolveFn): void => resolve(undefined));
 
 const setVariable = (
   variables: { [name: string]: mixed},
@@ -44,10 +45,10 @@ const setVariable = (
   key: string,
   newName: string
 ): void => {
-  if (typeof parameters !== "object" ||
-    !parameters ||
+  if (typeof parameters !== "object"
+    || !parameters
     // $FlowFixMe[method-unbinding]
-    !Object.prototype.hasOwnProperty.call(parameters, key)) {
+    || !Object.prototype.hasOwnProperty.call(parameters, key)) {
     throw missingVariableError(key);
   }
 
@@ -107,8 +108,8 @@ export const enqueue = (
   const last = pending[pending.length - 1];
 
   if (last && last.bundle.operation === newBundle.operation) {
-    const { bundle, renamedVariables, renamedFields } =
-      mergeBundle(last.bundle, newBundle);
+    const { bundle, renamedVariables, renamedFields }
+      = mergeBundle(last.bundle, newBundle);
 
     last.bundle = bundle;
 
@@ -207,14 +208,12 @@ export const createClient = ({ runQuery, debounce = 50 }: ClientArgs): Client<{}
     parameters: P,
     // eslint-disable-next-line no-unused-vars
     options?: {} = {}
-  ): Promise<R> => {
-    return new Promise<any>((resolve: ResolveFn, reject: RejectFn): void => {
-      enqueue(pending, createBundle(query), parameters, resolve, reject);
+  ): Promise<R> => new Promise<any>((resolve: ResolveFn, reject: RejectFn): void => {
+    enqueue(pending, createBundle(query), parameters, resolve, reject);
 
-      if (!timer) {
-        timer = setTimeout(fire, debounce);
-      }
-    });
-  };
+    if (!timer) {
+      timer = setTimeout(fire, debounce);
+    }
+  });
 };
 

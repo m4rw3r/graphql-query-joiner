@@ -1,10 +1,11 @@
 /* @flow */
 
-import type { Client } from "../src";
-
 import test from "ava";
 import dummee from "dummee";
 import { parse, print } from "graphql/language";
+
+import type { Client } from "../src";
+
 import { createBundle, createDocument } from "../src/bundle";
 import { enqueue, handleFetchResponse, groupErrors, runGroup } from "../src/client";
 import { queryError } from "../src/error";
@@ -266,29 +267,29 @@ test("enqueue different", t => {
 });
 
 test("handleFetchResponse text throw not ok", async t => {
-  const err = new Error("Failed test-reading");
+  const testError = new Error("Failed test-reading");
   const response = {
     ok: false,
     status: 123,
-    text: dummee(() => new Promise((resolve, reject) => reject(err))),
+    text: dummee(() => new Promise((resolve, reject) => reject(testError))),
   };
 
   const error = await t.throwsAsync(async () => {
     await handleFetchResponse((response: any));
   }, { message: "Failed test-reading" });
 
-  t.is(error, err);
+  t.is(error, testError);
   t.deepEqual(response.text.calls, [
     { args: [] },
   ]);
 });
 
 test("handleFetchResponse text throw ok", async t => {
-  const err = new Error("Failed test-reading");
+  const testError = new Error("Failed test-reading");
   const response = {
     ok: true,
     status: 200,
-    text: dummee(() => new Promise((resolve, reject) => reject(err))),
+    text: dummee(() => new Promise((resolve, reject) => reject(testError))),
   };
 
   const error = await t.throwsAsync(
@@ -296,7 +297,7 @@ test("handleFetchResponse text throw ok", async t => {
     { message: "Failed test-reading" }
   );
 
-  t.is(error, err);
+  t.is(error, testError);
   t.deepEqual(response.text.calls, [
     { args: [] },
   ]);
@@ -396,9 +397,7 @@ test("runGroup", async t => {
   const info = { name: "info" };
   const resolve = dummee();
   const reject = dummee();
-  const runQuery = dummee(() => {
-    return new Promise(resolve => resolve({ data: { info } }));
-  });
+  const runQuery = dummee(() => new Promise(resolve => resolve({ data: { info } })));
   const group = {
     bundle: createBundle(parse("{ info }")),
     variables: {},
@@ -444,9 +443,7 @@ test("runGroup error", async t => {
   const resolve2 = dummee();
   const reject2 = dummee();
   const error = new Error("test error");
-  const runQuery = dummee(() => {
-    return new Promise((resolve, reject) => reject(error));
-  });
+  const runQuery = dummee(() => new Promise((resolve, reject) => reject(error)));
   const group = {
     bundle: createBundle(parse("{ info }")),
     variables: {},
@@ -493,14 +490,12 @@ test("runGroup split", async t => {
   const reject = dummee();
   const resolve2 = dummee();
   const reject2 = dummee();
-  const runQuery = dummee(() => {
-    return new Promise(resolve => resolve({
-      data: {
-        info,
-        "info_1": info2,
-      },
-    }));
-  });
+  const runQuery = dummee(() => new Promise(resolve => resolve({
+    data: {
+      info,
+      "info_1": info2,
+    },
+  })));
   const group = {
     bundle: createBundle(parse("{ info }")),
     variables: {},
@@ -560,16 +555,14 @@ test("runGroup error split", async t => {
     message: "This error",
     path: ["info_1"],
   };
-  const runQuery = dummee(() => {
-    return new Promise(resolve => resolve({
-      errors: [
-        error1,
-      ],
-      data: {
-        info,
-      },
-    }));
-  });
+  const runQuery = dummee(() => new Promise(resolve => resolve({
+    errors: [
+      error1,
+    ],
+    data: {
+      info,
+    },
+  })));
   const group = {
     bundle: createBundle(parse("{ info }")),
     variables: {},
@@ -633,19 +626,17 @@ test("runGroup error split multiple", async t => {
     message: "This error 2",
     path: [],
   };
-  const runQuery = dummee(() => {
-    return new Promise(resolve => resolve({
-      errors: [
-        error0,
-        error1,
-        error2,
-      ],
-      data: {
-        info,
-        "info_1": info2,
-      },
-    }));
-  });
+  const runQuery = dummee(() => new Promise(resolve => resolve({
+    errors: [
+      error0,
+      error1,
+      error2,
+    ],
+    data: {
+      info,
+      "info_1": info2,
+    },
+  })));
   const group = {
     bundle: createBundle(parse("{ info }")),
     variables: {},

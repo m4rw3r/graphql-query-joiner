@@ -31,13 +31,13 @@
     "graphql": "^15.0.0|^16.0.0"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "^7.17.0",
     "@babel/plugin-transform-flow-strip-types": "^7.10.4",
     "@babel/preset-env": "^7.10.3",
     "@babel/register": "^7.17.7",
     "@rollup/plugin-babel": "^5.0.4",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "ava": "^4.3.0",
-    "babel-eslint": "^10.1.0",
     "babel-plugin-transform-async-to-promises": "^0.8.15",
     "dummee": "^1.2.0",
     "eslint-config-xo-flow": "^0.3.0",
@@ -51,6 +51,7 @@
     "xo": "^0.50.0"
   },
   "xo": {
+    "parser": "@babel/eslint-parser",
     "extends": [
       "xo-flow"
     ],
@@ -71,6 +72,7 @@
           "*.config.cjs"
         ],
         "rules": {
+          "unicorn/prefer-module": "off",
           "flowtype/require-valid-file-annotation": "off",
           "import/no-anonymous-default-export": "off"
         }
@@ -122,6 +124,10 @@
         "error",
         "declaration"
       ],
+      "import/extensions": [
+        "error",
+        "never"
+      ],
       "max-len": [
         "error",
         {
@@ -134,6 +140,7 @@
       "max-params": "off",
       "no-promise-executor-return": "off",
       "no-unused-vars": "error",
+      "n/file-extension-in-import": "off",
       "object-curly-spacing": [
         "error",
         "always"
