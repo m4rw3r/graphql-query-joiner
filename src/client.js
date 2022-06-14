@@ -46,6 +46,7 @@ const setVariable = (
 ): void => {
   if (typeof parameters !== "object" ||
     !parameters ||
+    // $FlowFixMe[method-unbinding]
     !Object.prototype.hasOwnProperty.call(parameters, key)) {
     throw missingVariableError(key);
   }

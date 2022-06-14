@@ -15,8 +15,7 @@ test("Fragment in root", t => {
 
 {
   ...Foo
-}
-'.`,
+}'.`,
   });
 });
 
@@ -30,8 +29,7 @@ test("Multiple queries in root", t => {
 
 {
   bar
-}
-'.`,
+}'.`,
   });
 });
 
@@ -41,8 +39,7 @@ test("No executable operation found", t => {
   t.throws(() => createBundle(query), {
     message: `Executable operation is missing in query 'fragment Foo on Bar {
   test
-}
-'.`,
+}'.`,
   });
 });
 
@@ -52,8 +49,7 @@ test("Non-executable operation found", t => {
   t.throws(() => createBundle(query), {
     message: `Non-executable definition found in query 'type Foo {
   bar: String
-}
-'.`,
+}'.`,
   });
 });
 

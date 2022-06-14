@@ -95,8 +95,7 @@ test("enqueue first", t => {
   t.is(queue[0].bundle, bundle);
   t.is(print(createDocument(queue[0].bundle)), `{
   info
-}
-`);
+}`);
   t.is(queue[0].promises[0].resolve, resolve);
   t.is(queue[0].promises[0].reject, reject);
   t.deepEqual(resolve.calls, []);
@@ -123,8 +122,7 @@ test("enqueue first", t => {
   t.is(print(createDocument(queue[0].bundle)), `{
   info
   info_1: info
-}
-`);
+}`);
   t.is(queue[0].promises[1].resolve, resolve2);
   t.is(queue[0].promises[1].reject, reject2);
   t.deepEqual(resolve.calls, []);
@@ -156,8 +154,7 @@ test("enqueue first", t => {
   info
   info_1: info
   getIt(foo: $param)
-}
-`);
+}`);
   t.is(queue[0].promises[1].resolve, resolve2);
   t.is(queue[0].promises[1].reject, reject2);
   t.deepEqual(resolve.calls, []);
@@ -188,8 +185,7 @@ test("enqueue different", t => {
   t.is(queue[0].bundle, bundle);
   t.is(print(createDocument(queue[0].bundle)), `{
   info
-}
-`);
+}`);
   t.is(queue[0].promises[0].resolve, resolve);
   t.is(queue[0].promises[0].reject, reject);
   t.deepEqual(resolve.calls, []);
@@ -219,12 +215,10 @@ test("enqueue different", t => {
   ]);
   t.is(print(createDocument(queue[0].bundle)), `{
   info
-}
-`);
+}`);
   t.is(print(createDocument(queue[1].bundle)), `mutation ($theparam: String) {
   doIt
-}
-`);
+}`);
   t.is(queue[1].promises[0].resolve, resolve2);
   t.is(queue[1].promises[0].reject, reject2);
   t.deepEqual(resolve.calls, []);
