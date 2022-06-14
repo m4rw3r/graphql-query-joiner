@@ -1,5 +1,4 @@
 module.exports = {
-  babelrc: false,
   ignore: [
     "node_modules/**/*.js",
   ],

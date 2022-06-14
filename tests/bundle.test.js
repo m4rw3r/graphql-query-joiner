@@ -1,7 +1,7 @@
 /* @flow */
 
 import test from "ava";
-import { parse, print } from "graphql/language";
+import { parse, print } from "graphql/language/index.js";
 
 import { createBundle, createDocument, mergeQuery } from "../src/bundle";
 

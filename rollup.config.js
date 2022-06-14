@@ -20,7 +20,7 @@ export default {
     nodeResolve(),
     babelPlugin({
       babelrc: false,
-      configFile: "./babel.config.cjs",
+      configFile: "./babel.config.js",
       babelHelpers: "bundled",
     }),
   ],

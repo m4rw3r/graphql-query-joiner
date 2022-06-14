@@ -1,17 +1,9 @@
-export default {
-  babel: {
-    testOptions: {
-      babelrc: false,
-      configFile: true,
-    },
-    compileAsTests: ["src/**/*", "tests/**/*"],
-  },
+module.exports = {
   files: [
     "tests/**/*.test.js",
   ],
-  powerAssert: true,
   snapshotDir: "tests/snapshots",
   require: [
-    "esm",
+    "@babel/register",
   ],
 };
