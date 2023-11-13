@@ -34,7 +34,7 @@ export type MergedQueryBundle = {
   +renamedVariables: { +[key: string]: string },
 };
 
-export const createBundle = (query: Query<any, any>): QueryBundle => {
+export const createBundle = <P, R>(query: Query<P, R>): QueryBundle => {
   const variables = new Map();
   const fields = new Map();
   const fragments = new Map();
@@ -102,7 +102,7 @@ export const createBundle = (query: Query<any, any>): QueryBundle => {
 
 export const mergeQuery = (
   bundle: QueryBundle,
-  query: Query<any, any>
+  query: Query<mixed, mixed>
 ): MergedQueryBundle => mergeBundle(bundle, createBundle(query));
 
 export const mergeBundle = (

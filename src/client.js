@@ -24,7 +24,7 @@ export type Client<-O> = <P, R: {}>(
   options?: $ReadOnly<O>
 ) => Promise<R>;
 
-type ResolveFn = (value: any) => void;
+type ResolveFn<T> = (value: T) => void;
 type RejectFn = (error: Error) => void;
 
 type RenameMap = {| +[key: string]: string |};
@@ -33,11 +33,11 @@ export type Group = {
   bundle: QueryBundle,
   variables: { [key: string]: mixed },
   fieldMap: Array<RenameMap>,
-  promises: Array<{ resolve: ResolveFn, reject: RejectFn }>,
+  promises: Array<{ resolve: ResolveFn<mixed>, reject: RejectFn }>,
 };
 
 export const resolved: Promise<void>
-  = new Promise((resolve: ResolveFn): void => resolve(undefined));
+  = new Promise((resolve: ResolveFn<void>): void => resolve(undefined));
 
 const setVariable = (
   variables: { [name: string]: mixed},
@@ -55,10 +55,10 @@ const setVariable = (
   variables[newName] = parameters[key];
 };
 
-const createGroup = (
+const createGroup = <P, R>(
   bundle: QueryBundle,
-  parameters: mixed,
-  resolve: ResolveFn,
+  parameters: P,
+  resolve: ResolveFn<R>,
   reject: RejectFn
 ): Group => {
   const variables = {};
@@ -76,7 +76,7 @@ const createGroup = (
     bundle,
     variables,
     fieldMap,
-    promises: [{ resolve, reject }],
+    promises: [{ resolve: (resolve: any), reject }],
   };
 };
 
@@ -98,11 +98,11 @@ export const handleFetchResponse = <R>(response: Response): Promise<R> =>
     }
   });
 
-export const enqueue = (
+export const enqueue = <P, R>(
   pending: Array<Group>,
   newBundle: QueryBundle,
-  parameters: mixed,
-  resolve: ResolveFn,
+  parameters: P,
+  resolve: ResolveFn<R>,
   reject: RejectFn
 ): void => {
   const last = pending[pending.length - 1];
@@ -119,8 +119,9 @@ export const enqueue = (
     }
     /* eslint-enable guard-for-in */
 
+    // SAFETY: We push a rename-fields and the corresponding resolve at the same time
     last.fieldMap.push(renamedFields);
-    last.promises.push({ resolve, reject });
+    last.promises.push({ resolve: (resolve: any), reject });
   } else {
     pending.push(createGroup(newBundle, parameters, resolve, reject));
   }
@@ -143,7 +144,7 @@ export const groupErrors = (
   const missingErrors = errors.filter((error: GraphQLError): boolean =>
     !matchedErrors.some((g: Array<GraphQLError>): boolean => g.includes(error)));
 
-  matchedErrors.forEach((m: Array<GraphQLError>): any => m.push(...missingErrors));
+  matchedErrors.forEach((m: Array<GraphQLError>): mixed => m.push(...missingErrors));
 
   return matchedErrors;
 };
@@ -154,7 +155,7 @@ export const runGroup = (
 ): Promise<void> => runQuery({
   query: print(createDocument(bundle)),
   variables,
-}).then((bundledResponse: GraphQLResponse<any>): void => {
+}).then((bundledResponse: GraphQLResponse<mixed>): void => {
   const errors = groupErrors(
     bundledResponse.errors || [],
     fieldMap.map((map: RenameMap): Array<any> => Object.values(map))
@@ -208,7 +209,7 @@ export const createClient = ({ runQuery, debounce = 50 }: ClientArgs): Client<{}
     parameters: P,
     // eslint-disable-next-line no-unused-vars
     options?: {} = {}
-  ): Promise<R> => new Promise<any>((resolve: ResolveFn, reject: RejectFn): void => {
+  ): Promise<R> => new Promise<R>((resolve: ResolveFn<R>, reject: RejectFn): void => {
     enqueue(pending, createBundle(query), parameters, resolve, reject);
 
     if (!timer) {
