@@ -119,7 +119,8 @@ export const enqueue = <P, R>(
     }
     /* eslint-enable guard-for-in */
 
-    // SAFETY: We push a rename-fields and the corresponding resolve at the same time
+    // SAFETY: We push a rename-fields and the corresponding resolve at the
+    // same time
     last.fieldMap.push(renamedFields);
     last.promises.push({ resolve: (resolve: any), reject });
   } else {
