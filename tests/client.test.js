@@ -332,7 +332,7 @@ test("handleFetchResponse ok bad JSON", async t => {
 
   const error = await t.throwsAsync(
     async () => handleFetchResponse((response: any)),
-    { name: "ParseError", message: `SyntaxError: Unexpected token 'T', "The text" is not valid JSON` }
+    { name: "ParseError", message: "SyntaxError: Unexpected token T in JSON at position 0" }
   );
 
   t.is(error.statusCode, 200);
