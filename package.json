@@ -5,6 +5,11 @@
   "authors": [
     "Martin Wernstål <m4rw3r@gmail.com>"
   ],
+  "homepage": "https://github.com/m4rw3r/graphql-query-joiner",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/m4rw3r/graphql-query-joiner.git"
+  },
   "license": "MIT",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
