@@ -1,10 +1,9 @@
-
 ## Features
 
- * All GraphQL Queries are run in `GET` requests.
- * All GraphQL Mutations are run in `POST` requests.
- * Multiple simultaneous GraphQL Queries are grouped in the same request.
- * Multiple simultaneous GraphQL Mutations are grouped in the same request, preserving order.
+- All GraphQL Queries are run in `GET` requests.
+- All GraphQL Mutations are run in `POST` requests.
+- Multiple simultaneous GraphQL Queries are grouped in the same request.
+- Multiple simultaneous GraphQL Mutations are grouped in the same request, preserving order.
 
 ## Example
 
@@ -21,12 +20,13 @@ const infoQuery = parse(`query {
 }`);
 
 const client = createClient({
-  runQuery: ({ query, variables }) => fetch("/graphql", {
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ query, variables }),
-  }).then(handleFetchResponse),
+  runQuery: ({ query, variables }) =>
+    fetch("/graphql", {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query, variables }),
+    }).then(handleFetchResponse),
   debounce: 5,
 });
 
@@ -36,7 +36,10 @@ const { test } = await client(myQuery);
 console.log(test);
 
 // Two merged in the same query
-const [{ test }, { info }] = await Promise.all([client(myQuery), client(infoQuery)]);
+const [{ test }, { info }] = await Promise.all([
+  client(myQuery),
+  client(infoQuery),
+]);
 
 console.log(test);
 console.log(info);

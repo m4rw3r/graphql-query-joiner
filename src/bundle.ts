@@ -1,3 +1,5 @@
+import type { Query, RenameMap } from "./query";
+
 import type {
   ASTNode,
   DocumentNode,
@@ -11,7 +13,6 @@ import type {
   VariableNode,
 } from "graphql/language";
 import { Kind, print, visit } from "graphql/language";
-import type { Query } from "./query";
 
 export type QueryBundle = {
   readonly operation: OperationTypeNode;
@@ -24,9 +25,9 @@ export type QueryBundle = {
 export type MergedQueryBundle = {
   readonly bundle: QueryBundle;
   // Map of old name -> new name
-  readonly renamedFields: Readonly<Record<string, string>>;
+  readonly renamedFields: Readonly<RenameMap>;
   // Map of old name -> new name
-  readonly renamedVariables: Readonly<Record<string, string>>;
+  readonly renamedVariables: Readonly<RenameMap>;
 };
 
 export const createBundle = <P, R>(query: Query<P, R>): QueryBundle => {

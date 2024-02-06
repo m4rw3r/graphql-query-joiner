@@ -1,6 +1,6 @@
 {
   "name": "@awardit/graphql-ast-client",
-  "version": "0.2.2",
+  "version": "1.0.0",
   "description": "Experimental small GraphQL client adaptable to HTTP/1.x or HTTP/2.x",
   "authors": [
     "Martin Wernstål <m4rw3r@gmail.com>"
@@ -11,157 +11,44 @@
     "url": "https://github.com/m4rw3r/graphql-query-joiner.git"
   },
   "license": "MIT",
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
   "sideEffects": false,
   "scripts": {
-    "build": "npm-run-all build:*",
-    "build:rollup": "rollup -c rollup.config.js",
-    "build:flow": "cp build/stub/flow.js dist/esm/index.js.flow && cp build/stub/flow.js dist/cjs/index.js.flow",
-    "coverage": "nyc --reporter=html ava --verbose",
-    "clean": "rm -rf dist",
-    "distclean": "rm -rf package-lock.json node_modules dist",
-    "flow": "flow check",
-    "prepack": "npm run clean && npm run test && npm run build",
-    "test": "npm-run-all test:*",
-    "test:flow": "flow status",
-    "test:ava": "ava --verbose",
-    "test:xo": "xo",
-    "watch": "nodemon -w src -w test --exec \"npm run -q test || true\""
+    "prebuild": "pnpm run clean",
+    "build": "pnpm run build:d.ts && pnpm run build:js",
+    "build:d.ts": "rollup -c",
+    "build:js": "tsc --project tsconfig.build.json",
+    "check": "tsc --noEmit",
+    "lint": "eslint .",
+    "clean": "rm -rf coverage dist",
+    "dist": "pnpm run check && pnpm run test && pnpm run format:check && pnpm run build && pnpm run lint",
+    "format": "prettier -w .",
+    "format:check": "prettier -c .",
+    "prepack": "pnpm run dist",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "publishConfig": {
     "access": "public"
   },
-  "peerDependencies": {
-    "graphql": "^15.0.0||^16.0.0"
+  "dependencies": {
+    "graphql": "^16.8.1"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.17.0",
-    "@babel/plugin-transform-flow-strip-types": "^7.10.4",
-    "@babel/preset-env": "^7.10.3",
-    "@babel/register": "^7.17.7",
-    "@rollup/plugin-babel": "^5.0.4",
-    "@rollup/plugin-node-resolve": "^13.3.0",
-    "ava": "^4.3.0",
-    "babel-plugin-transform-async-to-promises": "^0.8.15",
-    "dummee": "^1.2.0",
-    "eslint-config-xo-flow": "^0.3.0",
-    "eslint-plugin-flowtype": "^8.0.3",
-    "flow-bin": "^0.180.0",
-    "graphql": "^16.0.0",
-    "nodemon": "^2.0.4",
-    "npm-run-all": "^4.1.5",
-    "nyc": "^15.1.0",
-    "rollup": "^2.28.0",
-    "xo": "^0.50.0"
-  },
-  "xo": {
-    "parser": "@babel/eslint-parser",
-    "extends": [
-      "xo-flow"
-    ],
-    "overrides": [
-      {
-        "files": "**/*.test.js",
-        "rules": {
-          "flowtype/no-unused-expressions": "off",
-          "flowtype/require-parameter-type": "off",
-          "flowtype/require-return-type": "off",
-          "no-unused-expressions": "off",
-          "quote-props": "off"
-        }
-      },
-      {
-        "files": [
-          "*.config.js",
-          "*.config.cjs"
-        ],
-        "rules": {
-          "unicorn/prefer-module": "off",
-          "flowtype/require-valid-file-annotation": "off",
-          "import/no-anonymous-default-export": "off"
-        }
-      }
-    ],
-    "rules": {
-      "comma-dangle": [
-        "error",
-        {
-          "arrays": "always-multiline",
-          "objects": "always-multiline",
-          "imports": "always-multiline",
-          "exports": "always-multiline",
-          "functions": "never"
-        }
-      ],
-      "flowtype/array-style-complex-type": [
-        "error",
-        "verbose"
-      ],
-      "flowtype/array-style-simple-type": [
-        "error",
-        "verbose"
-      ],
-      "flowtype/delimiter-dangle": [
-        "error",
-        "always-multiline"
-      ],
-      "flowtype/newline-after-flow-annotation": [
-        "error",
-        "always"
-      ],
-      "flowtype/require-types-at-top": "warn",
-      "flowtype/require-valid-file-annotation": [
-        "error",
-        "always",
-        {
-          "annotationStyle": "block"
-        }
-      ],
-      "flowtype/require-return-type": [
-        "error",
-        "always",
-        {
-          "annotateUndefined": "always"
-        }
-      ],
-      "flowtype/type-import-style": [
-        "error",
-        "declaration"
-      ],
-      "import/extensions": [
-        "error",
-        "never"
-      ],
-      "max-len": [
-        "error",
-        {
-          "code": 100,
-          "comments": 80,
-          "ignoreStrings": true,
-          "ignoreTemplateLiterals": true
-        }
-      ],
-      "max-params": "off",
-      "no-promise-executor-return": "off",
-      "no-unused-vars": "error",
-      "n/file-extension-in-import": "off",
-      "object-curly-spacing": [
-        "error",
-        "always"
-      ],
-      "quotes": [
-        "error",
-        "double",
-        {
-          "allowTemplateLiterals": true
-        }
-      ],
-      "unicorn/no-array-reduce": "off",
-      "unicorn/no-array-for-each": "off",
-      "unicorn/no-array-callback-reference": "off",
-      "valid-jsdoc": "off"
-    },
-    "space": 2
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.16",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.56.0",
+    "graphql": "^16.8.1",
+    "jest": "^29.7.0",
+    "prettier": "^3.2.5",
+    "rollup": "^4.9.6",
+    "rollup-plugin-dts": "^6.1.0",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
   }
 }

@@ -1,0 +1,1800 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Advanced createBundle 1`] = `
+{
+  "fields": Map {
+    "here" => {
+      "alias": undefined,
+      "arguments": [],
+      "directives": [],
+      "kind": "Field",
+      "name": {
+        "kind": "Name",
+        "value": "here",
+      },
+      "selectionSet": {
+        "kind": "SelectionSet",
+        "selections": [
+          {
+            "directives": [],
+            "kind": "FragmentSpread",
+            "name": {
+              "kind": "Name",
+              "value": "Foo",
+            },
+          },
+        ],
+      },
+    },
+  },
+  "fragments": Map {
+    "Foo" => {
+      "directives": [],
+      "kind": "FragmentDefinition",
+      "name": {
+        "kind": "Name",
+        "value": "Foo",
+      },
+      "selectionSet": {
+        "kind": "SelectionSet",
+        "selections": [
+          {
+            "alias": undefined,
+            "arguments": [
+              {
+                "kind": "Argument",
+                "name": {
+                  "kind": "Name",
+                  "value": "theparam",
+                },
+                "value": {
+                  "kind": "Variable",
+                  "name": {
+                    "kind": "Name",
+                    "value": "param",
+                  },
+                },
+              },
+            ],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "getIt",
+            },
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [
+                {
+                  "alias": undefined,
+                  "arguments": [],
+                  "directives": [],
+                  "kind": "Field",
+                  "name": {
+                    "kind": "Name",
+                    "value": "data",
+                  },
+                  "selectionSet": undefined,
+                },
+              ],
+            },
+          },
+        ],
+      },
+      "typeCondition": {
+        "kind": "NamedType",
+        "name": {
+          "kind": "Name",
+          "value": "Bar",
+        },
+      },
+    },
+  },
+  "operation": "query",
+  "variables": Map {
+    "param" => {
+      "defaultValue": undefined,
+      "directives": [],
+      "kind": "VariableDefinition",
+      "type": {
+        "kind": "NonNullType",
+        "type": {
+          "kind": "NamedType",
+          "name": {
+            "kind": "Name",
+            "value": "String",
+          },
+        },
+      },
+      "variable": {
+        "kind": "Variable",
+        "name": {
+          "kind": "Name",
+          "value": "param",
+        },
+      },
+    },
+  },
+}
+`;
+
+exports[`Advanced createBundle 2`] = `
+{
+  "definitions": [
+    {
+      "kind": "OperationDefinition",
+      "operation": "query",
+      "selectionSet": {
+        "kind": "SelectionSet",
+        "selections": [
+          {
+            "alias": undefined,
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "here",
+            },
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [
+                {
+                  "directives": [],
+                  "kind": "FragmentSpread",
+                  "name": {
+                    "kind": "Name",
+                    "value": "Foo",
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+      "variableDefinitions": [
+        {
+          "defaultValue": undefined,
+          "directives": [],
+          "kind": "VariableDefinition",
+          "type": {
+            "kind": "NonNullType",
+            "type": {
+              "kind": "NamedType",
+              "name": {
+                "kind": "Name",
+                "value": "String",
+              },
+            },
+          },
+          "variable": {
+            "kind": "Variable",
+            "name": {
+              "kind": "Name",
+              "value": "param",
+            },
+          },
+        },
+      ],
+    },
+    {
+      "directives": [],
+      "kind": "FragmentDefinition",
+      "name": {
+        "kind": "Name",
+        "value": "Foo",
+      },
+      "selectionSet": {
+        "kind": "SelectionSet",
+        "selections": [
+          {
+            "alias": undefined,
+            "arguments": [
+              {
+                "kind": "Argument",
+                "name": {
+                  "kind": "Name",
+                  "value": "theparam",
+                },
+                "value": {
+                  "kind": "Variable",
+                  "name": {
+                    "kind": "Name",
+                    "value": "param",
+                  },
+                },
+              },
+            ],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "getIt",
+            },
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [
+                {
+                  "alias": undefined,
+                  "arguments": [],
+                  "directives": [],
+                  "kind": "Field",
+                  "name": {
+                    "kind": "Name",
+                    "value": "data",
+                  },
+                  "selectionSet": undefined,
+                },
+              ],
+            },
+          },
+        ],
+      },
+      "typeCondition": {
+        "kind": "NamedType",
+        "name": {
+          "kind": "Name",
+          "value": "Bar",
+        },
+      },
+    },
+  ],
+  "kind": "Document",
+}
+`;
+
+exports[`Advanced createBundle 3`] = `
+"query ($param: String!) {
+  here {
+    ...Foo
+  }
+}
+
+fragment Foo on Bar {
+  getIt(theparam: $param) {
+    data
+  }
+}"
+`;
+
+exports[`Advanced mergeQuery 1`] = `
+{
+  "fields": Map {
+    "getIt" => {
+      "alias": undefined,
+      "arguments": [
+        {
+          "kind": "Argument",
+          "name": {
+            "kind": "Name",
+            "value": "value",
+          },
+          "value": {
+            "kind": "Variable",
+            "name": {
+              "kind": "Name",
+              "value": "param",
+            },
+          },
+        },
+      ],
+      "directives": [],
+      "kind": "Field",
+      "name": {
+        "kind": "Name",
+        "value": "getIt",
+      },
+      "selectionSet": {
+        "kind": "SelectionSet",
+        "selections": [
+          {
+            "alias": undefined,
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "result",
+            },
+            "selectionSet": undefined,
+          },
+        ],
+      },
+    },
+  },
+  "fragments": Map {},
+  "operation": "query",
+  "variables": Map {
+    "param" => {
+      "defaultValue": undefined,
+      "directives": [],
+      "kind": "VariableDefinition",
+      "type": {
+        "kind": "NamedType",
+        "name": {
+          "kind": "Name",
+          "value": "String",
+        },
+      },
+      "variable": {
+        "kind": "Variable",
+        "name": {
+          "kind": "Name",
+          "value": "param",
+        },
+      },
+    },
+  },
+}
+`;
+
+exports[`Advanced mergeQuery 2`] = `
+{
+  "bundle": {
+    "fields": Map {
+      "getIt" => {
+        "alias": undefined,
+        "arguments": [
+          {
+            "kind": "Argument",
+            "name": {
+              "kind": "Name",
+              "value": "value",
+            },
+            "value": {
+              "kind": "Variable",
+              "name": {
+                "kind": "Name",
+                "value": "param",
+              },
+            },
+          },
+        ],
+        "directives": [],
+        "kind": "Field",
+        "name": {
+          "kind": "Name",
+          "value": "getIt",
+        },
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [
+            {
+              "alias": undefined,
+              "arguments": [],
+              "directives": [],
+              "kind": "Field",
+              "name": {
+                "kind": "Name",
+                "value": "result",
+              },
+              "selectionSet": undefined,
+            },
+          ],
+        },
+      },
+      "bopIt" => {
+        "alias": undefined,
+        "arguments": [
+          {
+            "kind": "Argument",
+            "name": {
+              "kind": "Name",
+              "value": "value",
+            },
+            "value": {
+              "kind": "Variable",
+              "name": {
+                "kind": "Name",
+                "value": "param_1",
+              },
+            },
+          },
+        ],
+        "directives": [],
+        "kind": "Field",
+        "name": {
+          "kind": "Name",
+          "value": "bopIt",
+        },
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [
+            {
+              "alias": undefined,
+              "arguments": [],
+              "directives": [],
+              "kind": "Field",
+              "name": {
+                "kind": "Name",
+                "value": "result",
+              },
+              "selectionSet": undefined,
+            },
+            {
+              "directives": [],
+              "kind": "FragmentSpread",
+              "name": {
+                "kind": "Name",
+                "value": "Foo",
+              },
+            },
+          ],
+        },
+      },
+    },
+    "fragments": Map {
+      "Foo" => {
+        "directives": [],
+        "kind": "FragmentDefinition",
+        "name": {
+          "kind": "Name",
+          "value": "Foo",
+        },
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [
+            {
+              "alias": undefined,
+              "arguments": [],
+              "directives": [],
+              "kind": "Field",
+              "name": {
+                "kind": "Name",
+                "value": "test",
+              },
+              "selectionSet": undefined,
+            },
+          ],
+        },
+        "typeCondition": {
+          "kind": "NamedType",
+          "name": {
+            "kind": "Name",
+            "value": "Bar",
+          },
+        },
+      },
+    },
+    "operation": "query",
+    "variables": Map {
+      "param" => {
+        "defaultValue": undefined,
+        "directives": [],
+        "kind": "VariableDefinition",
+        "type": {
+          "kind": "NamedType",
+          "name": {
+            "kind": "Name",
+            "value": "String",
+          },
+        },
+        "variable": {
+          "kind": "Variable",
+          "name": {
+            "kind": "Name",
+            "value": "param",
+          },
+        },
+      },
+      "param_1" => {
+        "defaultValue": undefined,
+        "directives": [],
+        "kind": "VariableDefinition",
+        "type": {
+          "kind": "NamedType",
+          "name": {
+            "kind": "Name",
+            "value": "String",
+          },
+        },
+        "variable": {
+          "kind": "Variable",
+          "name": {
+            "kind": "Name",
+            "value": "param_1",
+          },
+        },
+      },
+    },
+  },
+  "renamedFields": {
+    "bopIt": "bopIt",
+  },
+  "renamedVariables": {
+    "param": "param_1",
+  },
+}
+`;
+
+exports[`Advanced mergeQuery 3`] = `
+{
+  "definitions": [
+    {
+      "kind": "OperationDefinition",
+      "operation": "query",
+      "selectionSet": {
+        "kind": "SelectionSet",
+        "selections": [
+          {
+            "alias": undefined,
+            "arguments": [
+              {
+                "kind": "Argument",
+                "name": {
+                  "kind": "Name",
+                  "value": "value",
+                },
+                "value": {
+                  "kind": "Variable",
+                  "name": {
+                    "kind": "Name",
+                    "value": "param",
+                  },
+                },
+              },
+            ],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "getIt",
+            },
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [
+                {
+                  "alias": undefined,
+                  "arguments": [],
+                  "directives": [],
+                  "kind": "Field",
+                  "name": {
+                    "kind": "Name",
+                    "value": "result",
+                  },
+                  "selectionSet": undefined,
+                },
+              ],
+            },
+          },
+          {
+            "alias": undefined,
+            "arguments": [
+              {
+                "kind": "Argument",
+                "name": {
+                  "kind": "Name",
+                  "value": "value",
+                },
+                "value": {
+                  "kind": "Variable",
+                  "name": {
+                    "kind": "Name",
+                    "value": "param_1",
+                  },
+                },
+              },
+            ],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "bopIt",
+            },
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [
+                {
+                  "alias": undefined,
+                  "arguments": [],
+                  "directives": [],
+                  "kind": "Field",
+                  "name": {
+                    "kind": "Name",
+                    "value": "result",
+                  },
+                  "selectionSet": undefined,
+                },
+                {
+                  "directives": [],
+                  "kind": "FragmentSpread",
+                  "name": {
+                    "kind": "Name",
+                    "value": "Foo",
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+      "variableDefinitions": [
+        {
+          "defaultValue": undefined,
+          "directives": [],
+          "kind": "VariableDefinition",
+          "type": {
+            "kind": "NamedType",
+            "name": {
+              "kind": "Name",
+              "value": "String",
+            },
+          },
+          "variable": {
+            "kind": "Variable",
+            "name": {
+              "kind": "Name",
+              "value": "param",
+            },
+          },
+        },
+        {
+          "defaultValue": undefined,
+          "directives": [],
+          "kind": "VariableDefinition",
+          "type": {
+            "kind": "NamedType",
+            "name": {
+              "kind": "Name",
+              "value": "String",
+            },
+          },
+          "variable": {
+            "kind": "Variable",
+            "name": {
+              "kind": "Name",
+              "value": "param_1",
+            },
+          },
+        },
+      ],
+    },
+    {
+      "directives": [],
+      "kind": "FragmentDefinition",
+      "name": {
+        "kind": "Name",
+        "value": "Foo",
+      },
+      "selectionSet": {
+        "kind": "SelectionSet",
+        "selections": [
+          {
+            "alias": undefined,
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "test",
+            },
+            "selectionSet": undefined,
+          },
+        ],
+      },
+      "typeCondition": {
+        "kind": "NamedType",
+        "name": {
+          "kind": "Name",
+          "value": "Bar",
+        },
+      },
+    },
+  ],
+  "kind": "Document",
+}
+`;
+
+exports[`Advanced mergeQuery 4`] = `
+"query ($param: String, $param_1: String) {
+  getIt(value: $param) {
+    result
+  }
+  bopIt(value: $param_1) {
+    result
+    ...Foo
+  }
+}
+
+fragment Foo on Bar {
+  test
+}"
+`;
+
+exports[`Alias one, keep others 1`] = `
+{
+  "fields": Map {
+    "info" => {
+      "alias": undefined,
+      "arguments": [],
+      "directives": [],
+      "kind": "Field",
+      "name": {
+        "kind": "Name",
+        "value": "info",
+      },
+      "selectionSet": undefined,
+    },
+  },
+  "fragments": Map {},
+  "operation": "query",
+  "variables": Map {},
+}
+`;
+
+exports[`Alias one, keep others 2`] = `
+{
+  "bundle": {
+    "fields": Map {
+      "info" => {
+        "alias": undefined,
+        "arguments": [],
+        "directives": [],
+        "kind": "Field",
+        "name": {
+          "kind": "Name",
+          "value": "info",
+        },
+        "selectionSet": undefined,
+      },
+      "info_1" => {
+        "alias": {
+          "kind": "Name",
+          "value": "info_1",
+        },
+        "arguments": [],
+        "directives": [],
+        "kind": "Field",
+        "name": {
+          "kind": "Name",
+          "value": "info",
+        },
+        "selectionSet": undefined,
+      },
+      "another" => {
+        "alias": undefined,
+        "arguments": [],
+        "directives": [],
+        "kind": "Field",
+        "name": {
+          "kind": "Name",
+          "value": "another",
+        },
+        "selectionSet": undefined,
+      },
+    },
+    "fragments": Map {},
+    "operation": "query",
+    "variables": Map {},
+  },
+  "renamedFields": {
+    "another": "another",
+    "info": "info_1",
+  },
+  "renamedVariables": {},
+}
+`;
+
+exports[`Alias one, keep others 3`] = `
+{
+  "definitions": [
+    {
+      "kind": "OperationDefinition",
+      "operation": "query",
+      "selectionSet": {
+        "kind": "SelectionSet",
+        "selections": [
+          {
+            "alias": undefined,
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "info",
+            },
+            "selectionSet": undefined,
+          },
+          {
+            "alias": {
+              "kind": "Name",
+              "value": "info_1",
+            },
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "info",
+            },
+            "selectionSet": undefined,
+          },
+          {
+            "alias": undefined,
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "another",
+            },
+            "selectionSet": undefined,
+          },
+        ],
+      },
+      "variableDefinitions": [],
+    },
+  ],
+  "kind": "Document",
+}
+`;
+
+exports[`Alias one, keep others 4`] = `
+"{
+  info
+  info_1: info
+  another
+}"
+`;
+
+exports[`Multiple aliased fields 1`] = `
+{
+  "fields": Map {
+    "info" => {
+      "alias": undefined,
+      "arguments": [],
+      "directives": [],
+      "kind": "Field",
+      "name": {
+        "kind": "Name",
+        "value": "info",
+      },
+      "selectionSet": undefined,
+    },
+    "a" => {
+      "alias": {
+        "kind": "Name",
+        "value": "a",
+      },
+      "arguments": [],
+      "directives": [],
+      "kind": "Field",
+      "name": {
+        "kind": "Name",
+        "value": "info",
+      },
+      "selectionSet": undefined,
+    },
+    "another" => {
+      "alias": undefined,
+      "arguments": [],
+      "directives": [],
+      "kind": "Field",
+      "name": {
+        "kind": "Name",
+        "value": "another",
+      },
+      "selectionSet": undefined,
+    },
+  },
+  "fragments": Map {},
+  "operation": "query",
+  "variables": Map {},
+}
+`;
+
+exports[`Multiple aliased fields 2`] = `
+{
+  "bundle": {
+    "fields": Map {
+      "info" => {
+        "alias": undefined,
+        "arguments": [],
+        "directives": [],
+        "kind": "Field",
+        "name": {
+          "kind": "Name",
+          "value": "info",
+        },
+        "selectionSet": undefined,
+      },
+      "a" => {
+        "alias": {
+          "kind": "Name",
+          "value": "a",
+        },
+        "arguments": [],
+        "directives": [],
+        "kind": "Field",
+        "name": {
+          "kind": "Name",
+          "value": "info",
+        },
+        "selectionSet": undefined,
+      },
+      "another" => {
+        "alias": undefined,
+        "arguments": [],
+        "directives": [],
+        "kind": "Field",
+        "name": {
+          "kind": "Name",
+          "value": "another",
+        },
+        "selectionSet": undefined,
+      },
+      "info_1" => {
+        "alias": {
+          "kind": "Name",
+          "value": "info_1",
+        },
+        "arguments": [],
+        "directives": [],
+        "kind": "Field",
+        "name": {
+          "kind": "Name",
+          "value": "info",
+        },
+        "selectionSet": undefined,
+      },
+      "a_1" => {
+        "alias": {
+          "kind": "Name",
+          "value": "a_1",
+        },
+        "arguments": [],
+        "directives": [],
+        "kind": "Field",
+        "name": {
+          "kind": "Name",
+          "value": "info",
+        },
+        "selectionSet": undefined,
+      },
+      "another_1" => {
+        "alias": {
+          "kind": "Name",
+          "value": "another_1",
+        },
+        "arguments": [],
+        "directives": [],
+        "kind": "Field",
+        "name": {
+          "kind": "Name",
+          "value": "another",
+        },
+        "selectionSet": undefined,
+      },
+    },
+    "fragments": Map {},
+    "operation": "query",
+    "variables": Map {},
+  },
+  "renamedFields": {
+    "a": "a_1",
+    "another": "another_1",
+    "info": "info_1",
+  },
+  "renamedVariables": {},
+}
+`;
+
+exports[`Multiple aliased fields 3`] = `
+{
+  "definitions": [
+    {
+      "kind": "OperationDefinition",
+      "operation": "query",
+      "selectionSet": {
+        "kind": "SelectionSet",
+        "selections": [
+          {
+            "alias": undefined,
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "info",
+            },
+            "selectionSet": undefined,
+          },
+          {
+            "alias": {
+              "kind": "Name",
+              "value": "a",
+            },
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "info",
+            },
+            "selectionSet": undefined,
+          },
+          {
+            "alias": undefined,
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "another",
+            },
+            "selectionSet": undefined,
+          },
+          {
+            "alias": {
+              "kind": "Name",
+              "value": "info_1",
+            },
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "info",
+            },
+            "selectionSet": undefined,
+          },
+          {
+            "alias": {
+              "kind": "Name",
+              "value": "a_1",
+            },
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "info",
+            },
+            "selectionSet": undefined,
+          },
+          {
+            "alias": {
+              "kind": "Name",
+              "value": "another_1",
+            },
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "another",
+            },
+            "selectionSet": undefined,
+          },
+        ],
+      },
+      "variableDefinitions": [],
+    },
+  ],
+  "kind": "Document",
+}
+`;
+
+exports[`Multiple aliased fields 4`] = `
+"{
+  info
+  a: info
+  another
+  info_1: info
+  a_1: info
+  another_1: another
+}"
+`;
+
+exports[`Simple 1`] = `
+{
+  "fields": Map {
+    "info" => {
+      "alias": undefined,
+      "arguments": [],
+      "directives": [],
+      "kind": "Field",
+      "name": {
+        "kind": "Name",
+        "value": "info",
+      },
+      "selectionSet": undefined,
+    },
+  },
+  "fragments": Map {},
+  "operation": "query",
+  "variables": Map {},
+}
+`;
+
+exports[`Simple 2`] = `
+{
+  "bundle": {
+    "fields": Map {
+      "info" => {
+        "alias": undefined,
+        "arguments": [],
+        "directives": [],
+        "kind": "Field",
+        "name": {
+          "kind": "Name",
+          "value": "info",
+        },
+        "selectionSet": undefined,
+      },
+      "info_1" => {
+        "alias": {
+          "kind": "Name",
+          "value": "info_1",
+        },
+        "arguments": [],
+        "directives": [],
+        "kind": "Field",
+        "name": {
+          "kind": "Name",
+          "value": "info",
+        },
+        "selectionSet": undefined,
+      },
+    },
+    "fragments": Map {},
+    "operation": "query",
+    "variables": Map {},
+  },
+  "renamedFields": {
+    "info": "info_1",
+  },
+  "renamedVariables": {},
+}
+`;
+
+exports[`Simple 3`] = `
+{
+  "definitions": [
+    {
+      "kind": "OperationDefinition",
+      "operation": "query",
+      "selectionSet": {
+        "kind": "SelectionSet",
+        "selections": [
+          {
+            "alias": undefined,
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "info",
+            },
+            "selectionSet": undefined,
+          },
+          {
+            "alias": {
+              "kind": "Name",
+              "value": "info_1",
+            },
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "info",
+            },
+            "selectionSet": undefined,
+          },
+        ],
+      },
+      "variableDefinitions": [],
+    },
+  ],
+  "kind": "Document",
+}
+`;
+
+exports[`Simple 4`] = `
+"{
+  info
+  info_1: info
+}"
+`;
+
+exports[`mergeQuery with fragments 1`] = `
+{
+  "fields": Map {
+    "getIt" => {
+      "alias": undefined,
+      "arguments": [
+        {
+          "kind": "Argument",
+          "name": {
+            "kind": "Name",
+            "value": "value",
+          },
+          "value": {
+            "kind": "Variable",
+            "name": {
+              "kind": "Name",
+              "value": "param",
+            },
+          },
+        },
+      ],
+      "directives": [],
+      "kind": "Field",
+      "name": {
+        "kind": "Name",
+        "value": "getIt",
+      },
+      "selectionSet": {
+        "kind": "SelectionSet",
+        "selections": [
+          {
+            "alias": undefined,
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "result",
+            },
+            "selectionSet": undefined,
+          },
+          {
+            "directives": [],
+            "kind": "FragmentSpread",
+            "name": {
+              "kind": "Name",
+              "value": "Foo",
+            },
+          },
+        ],
+      },
+    },
+  },
+  "fragments": Map {
+    "Foo" => {
+      "directives": [],
+      "kind": "FragmentDefinition",
+      "name": {
+        "kind": "Name",
+        "value": "Foo",
+      },
+      "selectionSet": {
+        "kind": "SelectionSet",
+        "selections": [
+          {
+            "alias": undefined,
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "info",
+            },
+            "selectionSet": undefined,
+          },
+          {
+            "alias": undefined,
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "test",
+            },
+            "selectionSet": undefined,
+          },
+        ],
+      },
+      "typeCondition": {
+        "kind": "NamedType",
+        "name": {
+          "kind": "Name",
+          "value": "Bar",
+        },
+      },
+    },
+  },
+  "operation": "query",
+  "variables": Map {
+    "param" => {
+      "defaultValue": undefined,
+      "directives": [],
+      "kind": "VariableDefinition",
+      "type": {
+        "kind": "NamedType",
+        "name": {
+          "kind": "Name",
+          "value": "String",
+        },
+      },
+      "variable": {
+        "kind": "Variable",
+        "name": {
+          "kind": "Name",
+          "value": "param",
+        },
+      },
+    },
+  },
+}
+`;
+
+exports[`mergeQuery with fragments 2`] = `
+{
+  "bundle": {
+    "fields": Map {
+      "getIt" => {
+        "alias": undefined,
+        "arguments": [
+          {
+            "kind": "Argument",
+            "name": {
+              "kind": "Name",
+              "value": "value",
+            },
+            "value": {
+              "kind": "Variable",
+              "name": {
+                "kind": "Name",
+                "value": "param",
+              },
+            },
+          },
+        ],
+        "directives": [],
+        "kind": "Field",
+        "name": {
+          "kind": "Name",
+          "value": "getIt",
+        },
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [
+            {
+              "alias": undefined,
+              "arguments": [],
+              "directives": [],
+              "kind": "Field",
+              "name": {
+                "kind": "Name",
+                "value": "result",
+              },
+              "selectionSet": undefined,
+            },
+            {
+              "directives": [],
+              "kind": "FragmentSpread",
+              "name": {
+                "kind": "Name",
+                "value": "Foo",
+              },
+            },
+          ],
+        },
+      },
+      "bopIt" => {
+        "alias": undefined,
+        "arguments": [
+          {
+            "kind": "Argument",
+            "name": {
+              "kind": "Name",
+              "value": "value",
+            },
+            "value": {
+              "kind": "Variable",
+              "name": {
+                "kind": "Name",
+                "value": "param_1",
+              },
+            },
+          },
+        ],
+        "directives": [],
+        "kind": "Field",
+        "name": {
+          "kind": "Name",
+          "value": "bopIt",
+        },
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [
+            {
+              "alias": undefined,
+              "arguments": [],
+              "directives": [],
+              "kind": "Field",
+              "name": {
+                "kind": "Name",
+                "value": "result",
+              },
+              "selectionSet": undefined,
+            },
+            {
+              "directives": [],
+              "kind": "FragmentSpread",
+              "name": {
+                "kind": "Name",
+                "value": "Foo_1",
+              },
+            },
+          ],
+        },
+      },
+    },
+    "fragments": Map {
+      "Foo" => {
+        "directives": [],
+        "kind": "FragmentDefinition",
+        "name": {
+          "kind": "Name",
+          "value": "Foo",
+        },
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [
+            {
+              "alias": undefined,
+              "arguments": [],
+              "directives": [],
+              "kind": "Field",
+              "name": {
+                "kind": "Name",
+                "value": "info",
+              },
+              "selectionSet": undefined,
+            },
+            {
+              "alias": undefined,
+              "arguments": [],
+              "directives": [],
+              "kind": "Field",
+              "name": {
+                "kind": "Name",
+                "value": "test",
+              },
+              "selectionSet": undefined,
+            },
+          ],
+        },
+        "typeCondition": {
+          "kind": "NamedType",
+          "name": {
+            "kind": "Name",
+            "value": "Bar",
+          },
+        },
+      },
+      "Foo_1" => {
+        "directives": [],
+        "kind": "FragmentDefinition",
+        "name": {
+          "kind": "Name",
+          "value": "Foo_1",
+        },
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [
+            {
+              "alias": undefined,
+              "arguments": [],
+              "directives": [],
+              "kind": "Field",
+              "name": {
+                "kind": "Name",
+                "value": "test",
+              },
+              "selectionSet": undefined,
+            },
+          ],
+        },
+        "typeCondition": {
+          "kind": "NamedType",
+          "name": {
+            "kind": "Name",
+            "value": "Bar",
+          },
+        },
+      },
+    },
+    "operation": "query",
+    "variables": Map {
+      "param" => {
+        "defaultValue": undefined,
+        "directives": [],
+        "kind": "VariableDefinition",
+        "type": {
+          "kind": "NamedType",
+          "name": {
+            "kind": "Name",
+            "value": "String",
+          },
+        },
+        "variable": {
+          "kind": "Variable",
+          "name": {
+            "kind": "Name",
+            "value": "param",
+          },
+        },
+      },
+      "param_1" => {
+        "defaultValue": undefined,
+        "directives": [],
+        "kind": "VariableDefinition",
+        "type": {
+          "kind": "NamedType",
+          "name": {
+            "kind": "Name",
+            "value": "String",
+          },
+        },
+        "variable": {
+          "kind": "Variable",
+          "name": {
+            "kind": "Name",
+            "value": "param_1",
+          },
+        },
+      },
+    },
+  },
+  "renamedFields": {
+    "bopIt": "bopIt",
+  },
+  "renamedVariables": {
+    "param": "param_1",
+  },
+}
+`;
+
+exports[`mergeQuery with fragments 3`] = `
+{
+  "definitions": [
+    {
+      "kind": "OperationDefinition",
+      "operation": "query",
+      "selectionSet": {
+        "kind": "SelectionSet",
+        "selections": [
+          {
+            "alias": undefined,
+            "arguments": [
+              {
+                "kind": "Argument",
+                "name": {
+                  "kind": "Name",
+                  "value": "value",
+                },
+                "value": {
+                  "kind": "Variable",
+                  "name": {
+                    "kind": "Name",
+                    "value": "param",
+                  },
+                },
+              },
+            ],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "getIt",
+            },
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [
+                {
+                  "alias": undefined,
+                  "arguments": [],
+                  "directives": [],
+                  "kind": "Field",
+                  "name": {
+                    "kind": "Name",
+                    "value": "result",
+                  },
+                  "selectionSet": undefined,
+                },
+                {
+                  "directives": [],
+                  "kind": "FragmentSpread",
+                  "name": {
+                    "kind": "Name",
+                    "value": "Foo",
+                  },
+                },
+              ],
+            },
+          },
+          {
+            "alias": undefined,
+            "arguments": [
+              {
+                "kind": "Argument",
+                "name": {
+                  "kind": "Name",
+                  "value": "value",
+                },
+                "value": {
+                  "kind": "Variable",
+                  "name": {
+                    "kind": "Name",
+                    "value": "param_1",
+                  },
+                },
+              },
+            ],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "bopIt",
+            },
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [
+                {
+                  "alias": undefined,
+                  "arguments": [],
+                  "directives": [],
+                  "kind": "Field",
+                  "name": {
+                    "kind": "Name",
+                    "value": "result",
+                  },
+                  "selectionSet": undefined,
+                },
+                {
+                  "directives": [],
+                  "kind": "FragmentSpread",
+                  "name": {
+                    "kind": "Name",
+                    "value": "Foo_1",
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+      "variableDefinitions": [
+        {
+          "defaultValue": undefined,
+          "directives": [],
+          "kind": "VariableDefinition",
+          "type": {
+            "kind": "NamedType",
+            "name": {
+              "kind": "Name",
+              "value": "String",
+            },
+          },
+          "variable": {
+            "kind": "Variable",
+            "name": {
+              "kind": "Name",
+              "value": "param",
+            },
+          },
+        },
+        {
+          "defaultValue": undefined,
+          "directives": [],
+          "kind": "VariableDefinition",
+          "type": {
+            "kind": "NamedType",
+            "name": {
+              "kind": "Name",
+              "value": "String",
+            },
+          },
+          "variable": {
+            "kind": "Variable",
+            "name": {
+              "kind": "Name",
+              "value": "param_1",
+            },
+          },
+        },
+      ],
+    },
+    {
+      "directives": [],
+      "kind": "FragmentDefinition",
+      "name": {
+        "kind": "Name",
+        "value": "Foo",
+      },
+      "selectionSet": {
+        "kind": "SelectionSet",
+        "selections": [
+          {
+            "alias": undefined,
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "info",
+            },
+            "selectionSet": undefined,
+          },
+          {
+            "alias": undefined,
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "test",
+            },
+            "selectionSet": undefined,
+          },
+        ],
+      },
+      "typeCondition": {
+        "kind": "NamedType",
+        "name": {
+          "kind": "Name",
+          "value": "Bar",
+        },
+      },
+    },
+    {
+      "directives": [],
+      "kind": "FragmentDefinition",
+      "name": {
+        "kind": "Name",
+        "value": "Foo_1",
+      },
+      "selectionSet": {
+        "kind": "SelectionSet",
+        "selections": [
+          {
+            "alias": undefined,
+            "arguments": [],
+            "directives": [],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "test",
+            },
+            "selectionSet": undefined,
+          },
+        ],
+      },
+      "typeCondition": {
+        "kind": "NamedType",
+        "name": {
+          "kind": "Name",
+          "value": "Bar",
+        },
+      },
+    },
+  ],
+  "kind": "Document",
+}
+`;
+
+exports[`mergeQuery with fragments 4`] = `
+"query ($param: String, $param_1: String) {
+  getIt(value: $param) {
+    result
+    ...Foo
+  }
+  bopIt(value: $param_1) {
+    result
+    ...Foo_1
+  }
+}
+
+fragment Foo on Bar {
+  info
+  test
+}
+
+fragment Foo_1 on Bar {
+  test
+}"
+`;

@@ -1,4 +1,4 @@
-import type { GraphQLResponse, GraphQLError, Query } from "./query";
+import type { GraphQLResponse, GraphQLError, Query, RenameMap } from "./query";
 import type { QueryBundle } from "./bundle";
 
 import { print } from "graphql/language";
@@ -28,7 +28,6 @@ export type Client<O> = <P extends {}, R extends {}>(
 
 type ResolveFn<T> = (value: T) => void;
 type RejectFn = (error: Error) => void;
-type RenameMap = Readonly<Record<string, string>>;
 
 export type Group = {
   bundle: QueryBundle;
@@ -36,12 +35,14 @@ export type Group = {
   queries: Array<GroupedQuery>;
 };
 
-type GroupedQueryWithError = GroupedQuery & { errors: Array<GraphQLError> };
-
 export type GroupedQuery = {
-  renames: RenameMap;
+  renamedFields: RenameMap;
   resolve: ResolveFn<unknown>;
   reject: RejectFn;
+};
+
+export type GroupedQueryWithError = GroupedQuery & {
+  errors: Array<GraphQLError>;
 };
 
 export const resolved: Promise<void> = new Promise(
@@ -50,22 +51,22 @@ export const resolved: Promise<void> = new Promise(
 
 const setVariable = (
   variables: Record<string, unknown>,
-  parameters: Readonly<Record<string, unknown>>,
-  key: string,
-  newName: string,
+  parameters: unknown,
+  nameInAst: string,
+  nameInQuery: string,
 ): void => {
   if (
-    typeof parameters !== "object" ||
-    !parameters || // $FlowFixMe[method-unbinding]
-    !Object.prototype.hasOwnProperty.call(parameters, key)
+    typeof parameters === "object" &&
+    parameters &&
+    parameters.hasOwnProperty(nameInAst)
   ) {
-    throw missingVariableError(key);
+    variables[nameInQuery] = (parameters as Record<string, unknown>)[nameInAst];
+  } else {
+    throw missingVariableError(nameInAst);
   }
-
-  variables[newName] = parameters[key];
 };
 
-const createGroup = <P extends {}, R>(
+const createGroup = <P, R>(
   bundle: QueryBundle,
   parameters: P,
   resolve: ResolveFn<R>,
@@ -87,7 +88,7 @@ const createGroup = <P extends {}, R>(
     variables,
     queries: [
       {
-        renames: firstBundleFields,
+        renamedFields: firstBundleFields,
         resolve: resolve as any,
         reject,
       },
@@ -117,7 +118,7 @@ export const handleFetchResponse = <R>(response: Response): Promise<R> =>
     }
   });
 
-export const enqueue = <P extends {}, R>(
+export const enqueue = <P, R>(
   pending: Array<Group>,
   newBundle: QueryBundle,
   parameters: P,
@@ -139,7 +140,7 @@ export const enqueue = <P extends {}, R>(
     }
 
     last.queries.push({
-      renames: renamedFields,
+      renamedFields,
       resolve: resolve as any,
       reject,
     });
@@ -154,34 +155,27 @@ export const enqueue = <P extends {}, R>(
  * If an error is not in any of the supplied groups then it is assigned to all
  * of them.
  */
-export const groupErrors = (
+export const groupErrors = <T extends { renamedFields: RenameMap }>(
   errors: Array<GraphQLError>,
-  // groups: Array<Array<string>>,
-  groups: Array<GroupedQuery>,
-): Array<GroupedQueryWithError> => {
-  const matchedErrors = [];
-  const groupsWithErrors = groups.map((group) => {
+  groups: Array<T>,
+): Array<T & { errors: Array<GraphQLError> }> => {
+  const groupsWithErrors = groups.map((group) => ({
+    ...group,
     // TODO: Maybe use something more efficent
-    const groupErrors = errors.filter(
+    errors: errors.filter(
       (error) =>
-        error.path !== undefined &&
-        Object.values(group.renames).includes(error.path[0]),
-    );
-
-    matchedErrors.push(...groupErrors);
-
-    return {
-      ...group,
-      errors: groupErrors,
-    };
-  });
+        Array.isArray(error.path) &&
+        error.path.length > 0 &&
+        Object.values(group.renamedFields).includes(error.path[0]!),
+    ),
+  }));
 
   // We need to make sure that errors without a path also gets propagated
   const missingErrors = errors.filter(
     (error) => !groupsWithErrors.some((g) => g.errors.includes(error)),
   );
 
-  groupsWithErrors.forEach((m) => m.errors.push(...missingErrors));
+  groupsWithErrors.forEach((group) => group.errors.push(...missingErrors));
 
   return groupsWithErrors;
 };
@@ -195,23 +189,23 @@ export const runGroup = (
     variables,
   }).then(
     (bundledResponse: GraphQLResponse<any>): void => {
-      for (const { renames, resolve, reject, errors } of groupErrors(
+      for (const { renamedFields, resolve, reject, errors } of groupErrors(
         bundledResponse.errors || [],
         queries,
       )) {
         const data: Record<string, unknown> = {};
 
         if ("data" in bundledResponse) {
-          for (const [k, v] of Object.entries(renames)) {
+          for (const [k, v] of Object.entries(renamedFields)) {
             data[k] = bundledResponse.data[v];
           }
         }
 
         if (errors.length > 0) {
-          return reject(queryError(errors, data));
+          reject(queryError(errors, data));
+        } else {
+          resolve(data);
         }
-
-        resolve(data);
       }
     },
     (error: Error): void =>

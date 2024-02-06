@@ -17,18 +17,21 @@ export type QueryParameters<Q> = Q extends Query<infer P, any> ? P : never;
  */
 export type QueryResponse<Q> = Q extends Query<any, infer R> ? R : never;
 
-type NonEmptyArray<T> = [T, ...T[]];
+/**
+ * Map of name in AST -> name in query.
+ */
+export type RenameMap = Readonly<Record<string, string>>;
 
 export type GraphQLError = {
   message: string;
-  path?: NonEmptyArray<string>;
+  path?: Array<string>;
 };
 
 export type GraphQLResponse<T> =
   | {
-      errors?: NonEmptyArray<GraphQLError>;
+      errors?: Array<GraphQLError>;
       data: T;
     }
   | {
-      errors: NonEmptyArray<GraphQLError>;
+      errors: Array<GraphQLError>;
     };

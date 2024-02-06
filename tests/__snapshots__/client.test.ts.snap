@@ -1,0 +1,66 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`runGroup 1`] = `
+[
+  [
+    {
+      "query": "{
+  info
+}",
+      "variables": {},
+    },
+  ],
+]
+`;
+
+exports[`runGroup error 1`] = `
+[
+  [
+    {
+      "query": "{
+  info
+}",
+      "variables": {},
+    },
+  ],
+]
+`;
+
+exports[`runGroup error split 1`] = `
+[
+  [
+    {
+      "query": "{
+  info
+}",
+      "variables": {},
+    },
+  ],
+]
+`;
+
+exports[`runGroup error split multiple 1`] = `
+[
+  [
+    {
+      "query": "{
+  info
+}",
+      "variables": {},
+    },
+  ],
+]
+`;
+
+exports[`runGroup split 1`] = `
+[
+  [
+    {
+      "query": "{
+  info
+}",
+      "variables": {},
+    },
+  ],
+]
+`;
