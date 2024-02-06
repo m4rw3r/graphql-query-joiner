@@ -1,5 +1,3 @@
-/* @flow */
-
 export type {
   Query,
   QueryParameters,
@@ -8,6 +6,4 @@ export type {
   GraphQLResponse,
 } from "./query";
 export type { Client, ClientArgs, QueryRunner } from "./client";
-
 export { createClient, handleFetchResponse } from "./client";
-
