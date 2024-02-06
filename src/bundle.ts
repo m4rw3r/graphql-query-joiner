@@ -1,5 +1,4 @@
 import type { Query, RenameMap } from "./query";
-
 import type {
   ASTNode,
   DocumentNode,
@@ -12,6 +11,9 @@ import type {
   VariableDefinitionNode,
   VariableNode,
 } from "graphql/language";
+
+// Importing print here for debugging purposes is no problem since we need it
+// to be able to assemble the query
 import { Kind, print, visit } from "graphql/language";
 
 export type QueryBundle = {

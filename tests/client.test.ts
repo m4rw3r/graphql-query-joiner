@@ -1,4 +1,4 @@
-import type { Group } from "../src/client";
+import type { Group, QueryRunner } from "../src/client";
 import type { GraphQLError } from "../src/query";
 
 import { parse, print } from "graphql/language";
@@ -490,7 +490,7 @@ test("runGroup", async () => {
       },
     ],
   };
-  const result = runGroup(runQuery, group);
+  const result = runGroup(runQuery as QueryRunner, group);
 
   expect(result instanceof Promise).toBe(true);
   expect(resolve).toHaveBeenCalledTimes(0);
@@ -512,9 +512,7 @@ test("runGroup error", async () => {
   const resolve2 = jest.fn();
   const reject2 = jest.fn();
   const error = new Error("test error");
-  const runQuery = jest.fn(
-    () => new Promise((resolve, reject) => reject(error)),
-  );
+  const runQuery = jest.fn(() => new Promise((_, reject) => reject(error)));
   const group = {
     bundle: createBundle(parse("{ info }")),
     variables: {},
@@ -535,7 +533,7 @@ test("runGroup error", async () => {
       },
     ],
   };
-  const result = runGroup(runQuery, group);
+  const result = runGroup(runQuery as QueryRunner, group);
 
   expect(result instanceof Promise).toBe(true);
   expect(resolve).toHaveBeenCalledTimes(0);
@@ -585,7 +583,7 @@ test("runGroup split", async () => {
       },
     ],
   };
-  const result = runGroup(runQuery, group);
+  const result = runGroup(runQuery as QueryRunner, group);
 
   expect(result instanceof Promise).toBe(true);
   expect(resolve).toHaveBeenCalledTimes(0);
@@ -651,7 +649,7 @@ test("runGroup error split", async () => {
       },
     ],
   };
-  const result = runGroup(runQuery, group);
+  const result = runGroup(runQuery as QueryRunner, group);
 
   expect(result instanceof Promise).toBe(true);
   expect(resolve).toHaveBeenCalledTimes(0);
@@ -714,7 +712,7 @@ test("runGroup error split multiple", async () => {
       },
     ],
   };
-  const result = runGroup(runQuery, group);
+  const result = runGroup(runQuery as QueryRunner, group);
 
   expect(result instanceof Promise).toBe(true);
   expect(resolve).toHaveBeenCalledTimes(0);
