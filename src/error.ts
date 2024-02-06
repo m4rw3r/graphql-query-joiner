@@ -25,13 +25,15 @@ export type QueryError = Error & {
   queryData: Record<string, unknown>;
 };
 
-const graphqlErrorMessage = ({ message }: GraphQLError): string => message;
+function graphqlErrorMessage({ message }: GraphQLError): string {
+  return message;
+}
 
-export const requestError = (
+export function requestError(
   response: Response,
   bodyText: string,
   message: unknown,
-): RequestError => {
+): RequestError {
   const error: RequestError = new Error(message as string) as RequestError;
 
   error.name = "RequestError";
@@ -40,13 +42,13 @@ export const requestError = (
   error.bodyText = bodyText;
 
   return error;
-};
+}
 
-export const parseError = (
+export function parseError(
   response: Response,
   bodyText: string,
   message: unknown,
-): ParseError => {
+): ParseError {
   const error: ParseError = new Error(message as string) as ParseError;
 
   error.name = "ParseError";
@@ -55,12 +57,12 @@ export const parseError = (
   error.bodyText = bodyText;
 
   return error;
-};
+}
 
-export const queryError = (
+export function queryError(
   errors: Array<GraphQLError>,
   queryData: Record<string, unknown>,
-): QueryError => {
+): QueryError {
   const error: QueryError = new Error(
     errors.map(graphqlErrorMessage).join(", "),
   ) as QueryError;
@@ -70,9 +72,9 @@ export const queryError = (
   error.queryData = queryData;
 
   return error;
-};
+}
 
-export const missingVariableError = (name: string): MissingVariableError => {
+export function missingVariableError(name: string): MissingVariableError {
   const error: MissingVariableError = new Error(
     `Variable '${name}' is missing.`,
   ) as MissingVariableError;
@@ -81,4 +83,4 @@ export const missingVariableError = (name: string): MissingVariableError => {
   error.variableName = name;
 
   return error;
-};
+}

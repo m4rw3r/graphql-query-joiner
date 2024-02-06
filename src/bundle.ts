@@ -32,7 +32,7 @@ export type MergedQueryBundle = {
   readonly renamedVariables: Readonly<RenameMap>;
 };
 
-export const createBundle = <P, R>(query: Query<P, R>): QueryBundle => {
+export function createBundle<P, R>(query: Query<P, R>): QueryBundle {
   const variables = new Map();
   const fields = new Map();
   const fragments = new Map();
@@ -99,17 +99,19 @@ export const createBundle = <P, R>(query: Query<P, R>): QueryBundle => {
     operation: operation.operation,
     variables,
   };
-};
+}
 
-export const mergeQuery = (
+export function mergeQuery(
   bundle: QueryBundle,
   query: Query<unknown, unknown>,
-): MergedQueryBundle => mergeBundle(bundle, createBundle(query));
+): MergedQueryBundle {
+  return mergeBundle(bundle, createBundle(query));
+}
 
-export const mergeBundle = (
+export function mergeBundle(
   bundle: QueryBundle,
   newBundle: QueryBundle,
-): MergedQueryBundle => {
+): MergedQueryBundle {
   const operation = bundle.operation;
   const variables = new Map(bundle.variables);
   const fields = new Map(bundle.fields);
@@ -233,14 +235,14 @@ export const mergeBundle = (
     renamedVariables,
     renamedFields,
   };
-};
+}
 
-export const createDocument = ({
+export function createDocument({
   fragments,
   operation,
   fields,
   variables,
-}: QueryBundle): DocumentNode => {
+}: QueryBundle): DocumentNode {
   const definitions: Array<DefinitionNode> = [
     {
       kind: Kind.OPERATION_DEFINITION,
@@ -261,17 +263,17 @@ export const createDocument = ({
     kind: Kind.DOCUMENT,
     definitions,
   };
-};
+}
 
 /**
  * Returns a map of old name -> new name for the supplied maps, if the name is
  * not colliding it will not be renamed but will still be included in the
  * result.
  */
-const rename = <T>(
+function rename<T>(
   oldItems: ReadonlyMap<string, T>,
   newItems: ReadonlyMap<string, T>,
-): Record<string, string> => {
+): Record<string, string> {
   const newNames: Record<string, string> = {};
 
   for (const [name] of newItems) {
@@ -286,4 +288,4 @@ const rename = <T>(
   }
 
   return newNames;
-};
+}

@@ -45,16 +45,14 @@ export type GroupedQueryWithError = GroupedQuery & {
   errors: Array<GraphQLError>;
 };
 
-export const resolved: Promise<void> = new Promise(
-  (resolve: ResolveFn<void>): void => resolve(undefined),
-);
+const resolved: Promise<void> = new Promise((resolve) => resolve(undefined));
 
-const setVariable = (
+function setVariable(
   variables: Record<string, unknown>,
   parameters: unknown,
   nameInAst: string,
   nameInQuery: string,
-): void => {
+): void {
   if (
     typeof parameters === "object" &&
     parameters &&
@@ -66,14 +64,14 @@ const setVariable = (
   } else {
     throw missingVariableError(nameInAst);
   }
-};
+}
 
-const createGroup = <P, R>(
+function createGroup<P, R>(
   bundle: QueryBundle,
   parameters: P,
   resolve: ResolveFn<R>,
   reject: RejectFn,
-): Group => {
+): Group {
   const variables = {};
   const firstBundleFields: Record<string, string> = {};
 
@@ -98,38 +96,39 @@ const createGroup = <P, R>(
       },
     ],
   };
-};
+}
 
 /**
  * Handles a fetch-Response and parses it into a GraphQLResponse,
  * throws if the request is not ok or if JSON fails to parse.
  */
-export const handleFetchResponse = <R>(response: Response): Promise<R> =>
-  response.text().then((bodyText: string): R => {
-    if (!response.ok) {
-      throw requestError(
-        response,
-        bodyText,
-        `Received status code ${response.status}`,
-      );
-    }
+export async function handleFetchResponse<R>(response: Response): Promise<R> {
+  const bodyText = await response.text();
 
-    try {
-      // SAFETY: Since it is successful we assume we have GraphQL-data in the
-      // correct format
-      return JSON.parse(bodyText) as R;
-    } catch (error) {
-      throw parseError(response, bodyText, error);
-    }
-  });
+  if (!response.ok) {
+    throw requestError(
+      response,
+      bodyText,
+      `Received status code ${response.status}`,
+    );
+  }
 
-export const enqueue = <P, R>(
+  try {
+    // SAFETY: Since it is successful we assume we have GraphQL-data in the
+    // correct format
+    return JSON.parse(bodyText) as R;
+  } catch (error) {
+    throw parseError(response, bodyText, error);
+  }
+}
+
+export function enqueue<P, R>(
   pending: Array<Group>,
   newBundle: QueryBundle,
   parameters: P,
   resolve: ResolveFn<R>,
   reject: RejectFn,
-): void => {
+): void {
   const last = pending[pending.length - 1];
 
   if (last && last.bundle.operation === newBundle.operation) {
@@ -154,7 +153,7 @@ export const enqueue = <P, R>(
   } else {
     pending.push(createGroup(newBundle, parameters, resolve, reject));
   }
-};
+}
 
 /**
  * Matches errors into groups based on their path.
@@ -162,10 +161,10 @@ export const enqueue = <P, R>(
  * If an error is not in any of the supplied groups then it is assigned to all
  * of them.
  */
-export const groupErrors = <T extends { renamedFields: RenameMap }>(
+export function groupErrors<T extends { renamedFields: RenameMap }>(
   errors: Array<GraphQLError>,
   groups: Array<T>,
-): Array<T & { errors: Array<GraphQLError> }> => {
+): Array<T & { errors: Array<GraphQLError> }> {
   const groupsWithErrors = groups.map((group) => ({
     ...group,
     // TODO: Maybe use something more efficent
@@ -186,57 +185,59 @@ export const groupErrors = <T extends { renamedFields: RenameMap }>(
   groupsWithErrors.forEach((group) => group.errors.push(...missingErrors));
 
   return groupsWithErrors;
-};
+}
 
-export const runGroup = (
+export async function runGroup(
   runQuery: QueryRunner,
   { bundle, variables, queries }: Group,
-): Promise<void> =>
-  runQuery({
-    query: print(createDocument(bundle)),
-    variables,
-  }).then(
-    (bundledResponse: GraphQLResponse<unknown>): void => {
-      for (const { renamedFields, resolve, reject, errors } of groupErrors(
-        bundledResponse.errors || [],
-        queries,
-      )) {
-        const data: Record<string, unknown> = {};
+): Promise<void> {
+  try {
+    const bundledResponse = await runQuery({
+      query: print(createDocument(bundle)),
+      variables,
+    });
 
-        if ("data" in bundledResponse) {
-          for (const [k, v] of Object.entries(renamedFields)) {
-            data[k] = (bundledResponse.data as Record<string, unknown>)[v];
-          }
-        }
+    for (const { renamedFields, resolve, reject, errors } of groupErrors(
+      bundledResponse.errors || [],
+      queries,
+    )) {
+      const data: Record<string, unknown> = {};
 
-        if (errors.length > 0) {
-          reject(queryError(errors, data));
-        } else {
-          resolve(data);
+      if ("data" in bundledResponse) {
+        for (const [k, v] of Object.entries(renamedFields)) {
+          // SAFETY: Since we have a data-field we assume that it contains
+          // the requested keys
+          data[k] = (bundledResponse.data as Record<string, unknown>)[v];
         }
       }
-    },
-    (error: Error): void =>
-      queries.forEach(({ reject }: { reject: RejectFn }): void =>
-        reject(error),
-      ),
-  );
 
-export const runGroups = (
+      if (errors.length > 0) {
+        reject(queryError(errors, data));
+      } else {
+        resolve(data);
+      }
+    }
+  } catch (e) {
+    // SAFETY: It is thrown, so we assume it is an Error
+    queries.forEach(({ reject }) => reject(e as Error));
+  }
+}
+
+export function runGroups(
   runQuery: QueryRunner,
   groups: Array<Group>,
-): Promise<void> =>
-  groups.reduce(
-    (p: Promise<void>, group: Group): Promise<void> =>
-      p.then((): Promise<void> => runGroup(runQuery, group)),
+): Promise<void> {
+  return groups.reduce(
+    (p, group) => p.then((): Promise<void> => runGroup(runQuery, group)),
     resolved,
   );
+}
 
 // TODO: Rewrite as class
-export const createClient = ({
+export function createClient({
   runQuery,
   debounce = 50,
-}: ClientArgs): Client<object> => {
+}: ClientArgs): Client<object> {
   let next = resolved;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let pending: Array<Group> = [];
@@ -262,4 +263,4 @@ export const createClient = ({
         timer = setTimeout(fire, debounce);
       }
     });
-};
+}
