@@ -20,7 +20,7 @@ export type ClientArgs = {
   debounce?: number;
 };
 
-export type Client<O> = <P extends {}, R extends {}>(
+export type Client<O> = <P, R>(
   query: Query<P, R>,
   variables: P,
   options?: Readonly<O>,
@@ -58,8 +58,10 @@ const setVariable = (
   if (
     typeof parameters === "object" &&
     parameters &&
-    parameters.hasOwnProperty(nameInAst)
+    Object.prototype.hasOwnProperty.call(parameters, nameInAst)
   ) {
+    // SAFETY: If we are requesting variables and pass these checks, we can
+    // assume it is a correct variable typed based on the Query
     variables[nameInQuery] = (parameters as Record<string, unknown>)[nameInAst];
   } else {
     throw missingVariableError(nameInAst);
@@ -89,7 +91,9 @@ const createGroup = <P, R>(
     queries: [
       {
         renamedFields: firstBundleFields,
-        resolve: resolve as any,
+        // SAFETY: We will only call this in runGroup() with data extracted
+        // from the fields above
+        resolve: resolve as ResolveFn<unknown>,
         reject,
       },
     ],
@@ -111,8 +115,9 @@ export const handleFetchResponse = <R>(response: Response): Promise<R> =>
     }
 
     try {
-      // Since it is successful we assume we have GraphQL-data
-      return JSON.parse(bodyText);
+      // SAFETY: Since it is successful we assume we have GraphQL-data in the
+      // correct format
+      return JSON.parse(bodyText) as R;
     } catch (error) {
       throw parseError(response, bodyText, error);
     }
@@ -141,7 +146,9 @@ export const enqueue = <P, R>(
 
     last.queries.push({
       renamedFields,
-      resolve: resolve as any,
+      // SAFETY: We will only call this in runGroup() with data extracted
+      // from the fields above
+      resolve: resolve as ResolveFn<unknown>,
       reject,
     });
   } else {
@@ -166,6 +173,7 @@ export const groupErrors = <T extends { renamedFields: RenameMap }>(
       (error) =>
         Array.isArray(error.path) &&
         error.path.length > 0 &&
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         Object.values(group.renamedFields).includes(error.path[0]!),
     ),
   }));
@@ -188,7 +196,7 @@ export const runGroup = (
     query: print(createDocument(bundle)),
     variables,
   }).then(
-    (bundledResponse: GraphQLResponse<any>): void => {
+    (bundledResponse: GraphQLResponse<unknown>): void => {
       for (const { renamedFields, resolve, reject, errors } of groupErrors(
         bundledResponse.errors || [],
         queries,
@@ -197,7 +205,7 @@ export const runGroup = (
 
         if ("data" in bundledResponse) {
           for (const [k, v] of Object.entries(renamedFields)) {
-            data[k] = bundledResponse.data[v];
+            data[k] = (bundledResponse.data as Record<string, unknown>)[v];
           }
         }
 
@@ -224,10 +232,11 @@ export const runGroups = (
     resolved,
   );
 
+// TODO: Rewrite as class
 export const createClient = ({
   runQuery,
   debounce = 50,
-}: ClientArgs): Client<{}> => {
+}: ClientArgs): Client<object> => {
   let next = resolved;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let pending: Array<Group> = [];
@@ -245,10 +254,7 @@ export const createClient = ({
     });
   };
 
-  return <P extends {}, R extends {}>(
-    query: Query<P, R>,
-    parameters: P,
-  ): Promise<R> =>
+  return <P, R>(query: Query<P, R>, parameters: P): Promise<R> =>
     new Promise<R>((resolve: ResolveFn<R>, reject: RejectFn): void => {
       enqueue(pending, createBundle(query), parameters, resolve, reject);
 

@@ -253,7 +253,7 @@ export const createDocument = ({
     },
   ];
 
-  for (const [_, fragment] of fragments) {
+  for (const fragment of fragments.values()) {
     definitions.push(fragment);
   }
 
