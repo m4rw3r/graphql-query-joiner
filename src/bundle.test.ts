@@ -1,5 +1,5 @@
 import { parse, print } from "graphql/language";
-import { createBundle, createDocument, mergeQuery } from "../src/bundle";
+import { createBundle, createDocument, mergeQuery } from "./bundle";
 
 test("Fragment in root", () => {
   const query = parse(`fragment Foo on Bar { test } query { ...Foo }`, {

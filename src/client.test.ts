@@ -1,15 +1,15 @@
-import type { Group, QueryRunner } from "../src/client";
-import type { GraphQLError } from "../src/query";
+import type { Group, QueryRunner } from "./client";
+import type { GraphQLError } from "./query";
 
 import { parse, print } from "graphql/language";
-import { createBundle, createDocument } from "../src/bundle";
+import { createBundle, createDocument } from "./bundle";
 import {
   enqueue,
   handleFetchResponse,
   groupErrors,
   runGroup,
 } from "../src/client";
-import { queryError } from "../src/error";
+import { queryError } from "./error";
 
 test("enqueue missing parameters", () => {
   const resolve = jest.fn();
