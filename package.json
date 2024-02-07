@@ -1,12 +1,13 @@
 {
-  "authors": [
-    "Martin Wernstål <m4rw3r@gmail.com>"
-  ],
   "homepage": "https://github.com/m4rw3r/graphql-query-joiner",
   "repository": {
     "type": "git",
     "url": "https://github.com/m4rw3r/graphql-query-joiner.git"
   },
+  "authors": [
+    "Martin Wernstål <m4rw3r@gmail.com>"
+  ],
+  "private": true,
   "type": "module",
   "license": "MIT",
   "scripts": {
