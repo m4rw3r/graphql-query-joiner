@@ -1,5 +1,3 @@
-/* @flow */
-
 import { foo, User } from "./queries.graphql";
 
 console.log(foo);
