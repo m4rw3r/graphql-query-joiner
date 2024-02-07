@@ -1,12 +1,11 @@
-
 type User {
-	name: String!
+  name: String!
 }
 
 type Query {
-	user: User
+  user: User
 }
 
 type Mutation {
-	updateUser: Boolean!
+  updateUser: Boolean!
 }

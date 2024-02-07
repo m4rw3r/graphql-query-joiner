@@ -16,11 +16,8 @@ import { graphql } from "rollup-plugin-graphql-ast-import";
 
 export default {
   // ...
-  plugins: [
-    graphql(),
-  ],
+  plugins: [graphql()],
 };
-
 ```
 
 ```graphql
@@ -50,15 +47,17 @@ query filmsWithPerson($name: String!) {
 import { films, filmsWithPerson } from "./myqueries.graphql";
 import { client } from "./ast-consuming-graphql-client";
 
-const { data: { Person: { Films: filmsWithLuke } } } = await client(
-  filmsWithPerson,
-  { name: "Luke Skywalker" }
-);
+const {
+  data: {
+    Person: { Films: filmsWithLuke },
+  },
+} = await client(filmsWithPerson, { name: "Luke Skywalker" });
 
 console.log("Films with Luke Skywalker: ", filmsWithLuke);
 
-const { data: { allFilms } } = await client(films);
+const {
+  data: { allFilms },
+} = await client(films);
 
 console.log("All films", allFilms);
 ```
-
