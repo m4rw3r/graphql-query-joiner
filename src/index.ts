@@ -1,26 +1,24 @@
-/* @flow */
-
 import type { DefinitionNode, FragmentSpreadNode } from "graphql/language";
 
 import { createFilter } from "@rollup/pluginutils";
 import { Kind, Source, isTypeDefinitionNode, parse, visit } from "graphql/language";
 
 type TransformedSource = {
-  code: string,
+  code: string;
   map: {
-    mappings: string,
-  },
+    mappings: string;
+  };
 };
 
 type RollupPlugin = {
-  name: string,
-  transform: (source: string, id: string) => ?TransformedSource,
+  name: string;
+  transform: (source: string, id: string) => TransformedSource | null | undefined;
 };
 
 type Options = {
-  include?: string | RegExp | Array<string | RegExp>,
-  exclude?: string | RegExp | Array<string | RegExp>,
-  typeDefs?: string | false,
+  include?: string | RegExp | Array<string | RegExp>;
+  exclude?: string | RegExp | Array<string | RegExp>;
+  typeDefs?: string | false;
 };
 
 const COMMENT_PATTERN = /#([^\n\r]*)/g;
@@ -37,7 +35,7 @@ export function graphql(options: Options = {}): RollupPlugin {
 
   return {
     name: "graphql-ast-import",
-    transform(gqlSource: string, id: string): ?TransformedSource {
+    transform(gqlSource: string, id: string): TransformedSource | null | undefined {
       if (!filter(id)) {
         return;
       }
@@ -45,7 +43,7 @@ export function graphql(options: Options = {}): RollupPlugin {
       const source = new Source(gqlSource, id);
       const ast = parse(source, { noLocation: true });
       const comments = gqlSource.match(COMMENT_PATTERN) || [];
-      const imports = comments.map((line: string): ?string => {
+      const imports = comments.map((line: string): string | null | undefined => {
         // TODO: Error handling with this
         const match = line.match(IMPORT_PATTERN);
 
@@ -73,7 +71,7 @@ export function graphql(options: Options = {}): RollupPlugin {
             if (!used.includes(value)) {
               used.push(value);
             }
-          },
+          }
         });
 
         // All imports are documents, so merge the definitions if there are any
@@ -110,6 +108,6 @@ export function graphql(options: Options = {}): RollupPlugin {
         // TODO: Source maps
         map: { mappings: "" },
       };
-    },
+    }
   };
 }

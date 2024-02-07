@@ -1,12 +1,9 @@
-/* @flow */
-
 import { graphql } from "../src";
-import test from "ava";
 import { rollup } from "rollup";
 
 process.chdir(__dirname);
 
-test("simple", async t => {
+test("simple", async () => {
   const bundle = await rollup({
     input: "fixtures/simple/main.js",
     plugins: [
@@ -15,25 +12,24 @@ test("simple", async t => {
   });
 
   const { output: [{ code }] } = await bundle.generate({
-    format: "esm",
+    format: "esm"
   });
 
-  t.snapshot(code);
+  expect(code).toMatchSnapshot();
 });
 
-test("fragment", async t => {
+test("fragment", async () => {
   const bundle = await rollup({
     input: "fixtures/fragment/main.js",
     plugins: [
       graphql(),
     ],
   });
-
   const { output: [{ code }] } = await bundle.generate({
-    format: "esm",
+    format: "esm"
   });
 
-  t.snapshot(code);
+  expect(code).toMatchSnapshot();
 });
 
 test("schema", async t => {
@@ -43,10 +39,9 @@ test("schema", async t => {
       graphql(),
     ],
   });
-
   const { output: [{ code }] } = await bundle.generate({
-    format: "esm",
+    format: "esm"
   });
 
-  t.snapshot(code);
+  expect(code).toMatchSnapshot();
 });
