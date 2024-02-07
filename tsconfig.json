@@ -1,0 +1,55 @@
+{
+  "compilerOptions": {
+    /* Visit https://aka.ms/tsconfig to read more about this file */
+
+    /* Language and Environment */
+    "target": "es2021",
+    "lib": ["dom", "es2021"],
+    "jsx": "react",
+    "jsxFactory": "createElement",
+    "jsxFragmentFactory": "Fragment",
+
+    /* Modules */
+    "module": "esnext",
+    "rootDir": ".",
+    "moduleResolution": "node",
+
+    /* Emit */
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "stripInternal": true,
+    "declarationDir": "dist",
+
+    /* Interop Constraints */
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+
+    /* Type Checking */
+    "strict": true,
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "skipLibCheck": false
+  },
+  /* Tool configuration */
+  "ts-node": {
+    "moduleTypes": {
+      /*
+      Manually declare that all jest.config.ts files are ES Modules
+      See https://github.com/jestjs/jest/issues/11453#issuecomment-877653950
+      and https://typestrong.org/ts-node/docs/module-type-overrides/
+      */
+      "jest.config.ts": "esm"
+    }
+  }
+}
