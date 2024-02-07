@@ -32,7 +32,7 @@ test("fragment", async () => {
   expect(code).toMatchSnapshot();
 });
 
-test("schema", async (t) => {
+test("schema", async () => {
   const bundle = await rollup({
     input: "fixtures/schema/main.js",
     plugins: [graphql()],
