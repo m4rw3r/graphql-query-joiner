@@ -1,7 +1,10 @@
+*.tgz
 .DS_Store
-/.nyc_output
-/coverage
-/dist
-/node_modules
-/package-lock.json
-/*.tgz
+.env
+.eslintcache
+.nyc_output
+.pnpm-debug.log
+coverage
+dist
+node_modules
+packages/*/.npmrc

@@ -1,0 +1,23 @@
+{
+  "name": "@awardit/graphql-ast-client",
+  "version": "1.0.0-rc1",
+  "description": "Experimental small GraphQL client adaptable to HTTP/1.x or HTTP/2.x",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "pnpm run build:d.ts && pnpm run build:js",
+    "build:d.ts": "rollup -c",
+    "build:js": "tsc --project tsconfig.build.json",
+    "clean": "rm -rf coverage dist",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "graphql": "^16.8.1"
+  }
+}

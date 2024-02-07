@@ -1,7 +1,4 @@
 {
-  "name": "@awardit/graphql-ast-client",
-  "version": "1.0.0",
-  "description": "Experimental small GraphQL client adaptable to HTTP/1.x or HTTP/2.x",
   "authors": [
     "Martin Wernstål <m4rw3r@gmail.com>"
   ],
@@ -10,31 +7,19 @@
     "type": "git",
     "url": "https://github.com/m4rw3r/graphql-query-joiner.git"
   },
-  "license": "MIT",
   "type": "module",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "sideEffects": false,
+  "license": "MIT",
   "scripts": {
     "prebuild": "pnpm run clean",
-    "build": "pnpm run build:d.ts && pnpm run build:js",
-    "build:d.ts": "rollup -c",
-    "build:js": "tsc --project tsconfig.build.json",
+    "build": "pnpm -r build",
     "check": "tsc --noEmit",
     "lint": "eslint .",
-    "clean": "rm -rf coverage dist",
+    "clean": "pnpm -r clean",
     "dist": "pnpm run check && pnpm run test && pnpm run format:check && pnpm run build && pnpm run lint",
     "format": "prettier -w .",
     "format:check": "prettier -c .",
     "prepack": "pnpm run dist",
-    "test": "jest",
-    "test:watch": "jest --watch"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "dependencies": {
-    "graphql": "^16.8.1"
+    "test": "pnpm -r test"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
@@ -42,7 +27,6 @@
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.56.0",
-    "graphql": "^16.8.1",
     "jest": "^29.7.0",
     "prettier": "^3.2.5",
     "rollup": "^4.9.6",

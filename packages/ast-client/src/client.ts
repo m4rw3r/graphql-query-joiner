@@ -27,7 +27,7 @@ export type Client<O> = <P, R>(
 ) => Promise<R>;
 
 type ResolveFn<T> = (value: T) => void;
-type RejectFn = (error: Error) => void;
+type RejectFn = (error: unknown) => void;
 
 export type Group = {
   bundle: QueryBundle;
@@ -218,8 +218,7 @@ export async function runGroup(
       }
     }
   } catch (e) {
-    // SAFETY: It is thrown, so we assume it is an Error
-    queries.forEach(({ reject }) => reject(e as Error));
+    queries.forEach(({ reject }) => reject(e));
   }
 }
 
@@ -228,7 +227,7 @@ export function runGroups(
   groups: Array<Group>,
 ): Promise<void> {
   return groups.reduce(
-    (p, group) => p.then((): Promise<void> => runGroup(runQuery, group)),
+    (p, group) => p.then(() => runGroup(runQuery, group)),
     resolved,
   );
 }
