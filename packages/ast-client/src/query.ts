@@ -15,23 +15,36 @@ export type QueryParameters<Q> = Q extends Query<infer P, unknown> ? P : never;
 /**
  * The query results of a query of type Q.
  */
-export type QueryResponse<Q> = Q extends Query<unknown, infer R> ? R : never;
+export type QueryResult<Q> = Q extends Query<unknown, infer R> ? R : never;
+
+/**
+ * Type describing an object which cannot have any properties ever.
+ */
+export type EmptyObject = Record<string | number | symbol, never>;
 
 /**
  * Map of name in AST -> name in query.
+ *
+ * @internal
  */
 export type RenameMap = Readonly<Record<string, string>>;
 
-export type GraphQLError = {
+/**
+ * A basic GraphQL error received from the server.
+ */
+export interface GraphQLError {
   message: string;
-  path?: Array<string>;
-};
+  path?: string[];
+}
 
+/**
+ * A basic GraphQL response.
+ */
 export type GraphQLResponse<T> =
   | {
-      errors?: Array<GraphQLError>;
+      errors?: GraphQLError[];
       data: T;
     }
   | {
-      errors: Array<GraphQLError>;
+      errors: GraphQLError[];
     };

@@ -1,4 +1,4 @@
-import type { Query, RenameMap } from "./query";
+import type { RenameMap } from "./query";
 import type {
   ASTNode,
   DocumentNode,
@@ -16,23 +16,36 @@ import type {
 // to be able to assemble the query
 import { Kind, print, visit } from "graphql/language";
 
-export type QueryBundle = {
+/**
+ * @internal
+ */
+export interface QueryBundle {
   readonly operation: OperationTypeNode;
   readonly variables: ReadonlyMap<string, VariableDefinitionNode>;
   // Map is used to preserve order of fields
   readonly fields: ReadonlyMap<string, FieldNode>;
   readonly fragments: ReadonlyMap<string, FragmentDefinitionNode>;
-};
+}
 
-export type MergedQueryBundle = {
+/**
+ * @internal
+ */
+export interface MergedQueryBundle {
   readonly bundle: QueryBundle;
-  // Map of old name -> new name
+  /**
+   * Map of old name -> new name
+   */
   readonly renamedFields: Readonly<RenameMap>;
-  // Map of old name -> new name
+  /**
+   * Map of old name -> new name
+   */
   readonly renamedVariables: Readonly<RenameMap>;
-};
+}
 
-export function createBundle<P, R>(query: Query<P, R>): QueryBundle {
+/**
+ * @internal
+ */
+export function createBundle(query: DocumentNode): QueryBundle {
   const variables = new Map();
   const fields = new Map();
   const fragments = new Map();
@@ -101,13 +114,19 @@ export function createBundle<P, R>(query: Query<P, R>): QueryBundle {
   };
 }
 
+/**
+ * @internal
+ */
 export function mergeQuery(
   bundle: QueryBundle,
-  query: Query<unknown, unknown>,
+  query: DocumentNode,
 ): MergedQueryBundle {
   return mergeBundle(bundle, createBundle(query));
 }
 
+/**
+ * @internal
+ */
 export function mergeBundle(
   bundle: QueryBundle,
   newBundle: QueryBundle,
@@ -134,7 +153,7 @@ export function mergeBundle(
         spread: FragmentSpreadNode,
       ): FragmentSpreadNode | null | undefined {
         const name = spread.name.value;
-        const newName = renamedFragments[name] || name;
+        const newName = renamedFragments[name] ?? name;
 
         if (newName !== name) {
           // Only create a new fragment spread if we actually need to rename it
@@ -153,7 +172,7 @@ export function mergeBundle(
 
       Variable(variable: VariableNode): VariableNode | null | undefined {
         const name = variable.name.value;
-        const newName = renamedVariables[name] || name;
+        const newName = renamedVariables[name] ?? name;
 
         if (newName !== name) {
           // Only create a new variable spread if we actually need to rename it
@@ -173,7 +192,7 @@ export function mergeBundle(
 
   // Rename self and references while assigning to merged bundle
   for (const [name, field] of newBundle.fields) {
-    const newName = renamedFields[name] || name;
+    const newName = renamedFields[name] ?? name;
     const ref = renameReferences(
       newName === name
         ? field
@@ -190,7 +209,7 @@ export function mergeBundle(
   }
 
   for (const [name, fragment] of newBundle.fragments) {
-    const newName = renamedFragments[name] || name;
+    const newName = renamedFragments[name] ?? name;
     const ref = renameReferences(
       newName === name
         ? fragment
@@ -206,7 +225,7 @@ export function mergeBundle(
   }
 
   for (const [name, node] of newBundle.variables) {
-    const newName = renamedVariables[name] || name;
+    const newName = renamedVariables[name] ?? name;
     const ref = renameReferences(
       newName === name
         ? node
@@ -237,13 +256,16 @@ export function mergeBundle(
   };
 }
 
+/**
+ * @internal
+ */
 export function createDocument({
   fragments,
   operation,
   fields,
   variables,
 }: QueryBundle): DocumentNode {
-  const definitions: Array<DefinitionNode> = [
+  const definitions: DefinitionNode[] = [
     {
       kind: Kind.OPERATION_DEFINITION,
       operation,
@@ -269,6 +291,8 @@ export function createDocument({
  * Returns a map of old name -> new name for the supplied maps, if the name is
  * not colliding it will not be renamed but will still be included in the
  * result.
+ *
+ * @internal
  */
 function rename<T>(
   oldItems: ReadonlyMap<string, T>,

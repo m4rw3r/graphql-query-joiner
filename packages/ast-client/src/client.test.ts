@@ -18,16 +18,16 @@ test("enqueue missing parameters", () => {
   const queue: Group[] = [];
   const parameters = { foo: "test" };
 
-  expect(() => enqueue(queue, bundle, undefined, resolve, reject)).toThrow(
-    "Variable 'foo' is missing.",
-  );
+  expect(() => {
+    enqueue(queue, bundle, undefined, resolve, reject);
+  }).toThrow("Variable 'foo' is missing.");
 
   expect(queue).toEqual([]);
   expect(resolve).toHaveBeenCalledTimes(0);
   expect(reject).toHaveBeenCalledTimes(0);
-  expect(() => enqueue(queue, bundle, {}, resolve, reject)).toThrow(
-    "Variable 'foo' is missing.",
-  );
+  expect(() => {
+    enqueue(queue, bundle, {}, resolve, reject);
+  }).toThrow("Variable 'foo' is missing.");
   expect(queue).toEqual([]);
   expect(resolve).toHaveBeenCalledTimes(0);
   expect(reject).toHaveBeenCalledTimes(0);
@@ -48,9 +48,9 @@ test("enqueue missing parameters", () => {
   ]);
   expect(resolve).toHaveBeenCalledTimes(0);
   expect(reject).toHaveBeenCalledTimes(0);
-  expect(() => enqueue(queue, bundle, undefined, resolve, reject)).toThrow(
-    "Variable 'foo' is missing.",
-  );
+  expect(() => {
+    enqueue(queue, bundle, undefined, resolve, reject);
+  }).toThrow("Variable 'foo' is missing.");
   expect(queue.length).toBe(1);
   expect(queue[0]!.variables).toEqual({ foo: "test" });
   expect(queue[0]!.queries).toEqual([
@@ -64,9 +64,9 @@ test("enqueue missing parameters", () => {
   ]);
   expect(resolve).toHaveBeenCalledTimes(0);
   expect(reject).toHaveBeenCalledTimes(0);
-  expect(() => enqueue(queue, bundle, {}, resolve, reject)).toThrow(
-    "Variable 'foo' is missing.",
-  );
+  expect(() => {
+    enqueue(queue, bundle, {}, resolve, reject);
+  }).toThrow("Variable 'foo' is missing.");
   expect(queue.length).toBe(1);
   expect(queue[0]!.variables).toEqual({ foo: "test" });
   expect(queue[0]!.queries).toEqual([
@@ -88,7 +88,8 @@ test("enqueue first", () => {
   const resolve = jest.fn();
   const reject = jest.fn();
 
-  expect(enqueue(queue, bundle, undefined, resolve, reject)).toBe(undefined);
+  enqueue(queue, bundle, undefined, resolve, reject);
+
   expect(queue).toEqual([
     {
       bundle,
@@ -117,7 +118,8 @@ test("enqueue first", () => {
   const resolve2 = jest.fn();
   const reject2 = jest.fn();
 
-  expect(enqueue(queue, bundle2, undefined, resolve2, reject2)).toBe(undefined);
+  enqueue(queue, bundle2, undefined, resolve2, reject2);
+
   expect(queue.length).toBe(1);
   expect(queue[0]!.bundle).not.toBe(bundle);
   expect(queue[0]!.bundle).not.toBe(bundle2);
@@ -158,9 +160,8 @@ test("enqueue first", () => {
   const resolve3 = jest.fn();
   const reject3 = jest.fn();
 
-  expect(enqueue(queue, bundle3, { param: "abc" }, resolve3, reject3)).toBe(
-    undefined,
-  );
+  enqueue(queue, bundle3, { param: "abc" }, resolve3, reject3);
+
   expect(queue.length).toBe(1);
   expect(queue[0]!.variables).toEqual({ param: "abc" });
   expect(queue[0]!.queries).toEqual([
@@ -214,7 +215,8 @@ test("enqueue different", () => {
   const resolve = jest.fn();
   const reject = jest.fn();
 
-  expect(enqueue(queue, bundle, undefined, resolve, reject)).toBe(undefined);
+  enqueue(queue, bundle, undefined, resolve, reject);
+
   expect(queue).toEqual([
     {
       bundle,
@@ -245,9 +247,8 @@ test("enqueue different", () => {
   const resolve2 = jest.fn();
   const reject2 = jest.fn();
 
-  expect(enqueue(queue, bundle2, { theparam: "foo" }, resolve2, reject2)).toBe(
-    undefined,
-  );
+  enqueue(queue, bundle2, { theparam: "foo" }, resolve2, reject2);
+
   expect(queue.length).toBe(2);
   expect(queue[0]!.bundle).toBe(bundle);
   expect(queue[1]!.bundle).toBe(bundle2);
@@ -288,7 +289,8 @@ test("enqueue different", () => {
   const resolve3 = jest.fn();
   const reject3 = jest.fn();
 
-  expect(enqueue(queue, bundle, undefined, resolve3, reject3)).toBe(undefined);
+  enqueue(queue, bundle, undefined, resolve3, reject3);
+
   expect(queue.length).toBe(3);
   expect(queue[0]!.bundle).toBe(bundle);
   expect(queue[1]!.bundle).toBe(bundle2);
@@ -340,7 +342,12 @@ test("handleFetchResponse text throw not ok", async () => {
   const response = {
     ok: false,
     status: 123,
-    text: jest.fn(() => new Promise((_, reject) => reject(testError))),
+    text: jest.fn(
+      () =>
+        new Promise((_, reject) => {
+          reject(testError);
+        }),
+    ),
   };
   let error: any;
 
@@ -360,7 +367,12 @@ test("handleFetchResponse text throw ok", async () => {
   const response = {
     ok: true,
     status: 200,
-    text: jest.fn(() => new Promise((_, reject) => reject(testError))),
+    text: jest.fn(
+      () =>
+        new Promise((_, reject) => {
+          reject(testError);
+        }),
+    ),
   };
   let error: any;
 
@@ -380,7 +392,10 @@ test("handleFetchResponse not ok", async () => {
     ok: false,
     status: 123,
     text: jest.fn(
-      () => new Promise((resolve) => resolve(`{"data": { "info": true } }`)),
+      () =>
+        new Promise((resolve) => {
+          resolve(`{"data": { "info": true } }`);
+        }),
     ),
   };
   let error: any;
@@ -404,7 +419,12 @@ test("handleFetchResponse ok bad JSON", async () => {
   const response = {
     ok: true,
     status: 200,
-    text: jest.fn(() => new Promise((resolve) => resolve("The text"))),
+    text: jest.fn(
+      () =>
+        new Promise((resolve) => {
+          resolve("The text");
+        }),
+    ),
   };
   let error: any;
 
@@ -428,7 +448,10 @@ test("handleFetchResponse", async () => {
     ok: true,
     status: 200,
     text: jest.fn(
-      () => new Promise((resolve) => resolve(`{"data": { "info": true } }`)),
+      () =>
+        new Promise((resolve) => {
+          resolve(`{"data": { "info": true } }`);
+        }),
     ),
   };
   const data = await handleFetchResponse(response as any);
@@ -475,7 +498,10 @@ test("runGroup", async () => {
   const resolve = jest.fn();
   const reject = jest.fn();
   const runQuery = jest.fn(
-    () => new Promise((resolve) => resolve({ data: { info } })),
+    () =>
+      new Promise((resolve) => {
+        resolve({ data: { info } });
+      }),
   );
   const group = {
     bundle: createBundle(parse("{ info }")),
@@ -497,9 +523,8 @@ test("runGroup", async () => {
   expect(reject).toHaveBeenCalledTimes(0);
   expect(runQuery.mock.calls).toMatchSnapshot();
 
-  const data = await result;
+  await result;
 
-  expect(undefined).toBe(data);
   expect(resolve).toHaveBeenCalledTimes(1);
   expect(resolve).toHaveBeenCalledWith({ info: { name: "info" } });
   expect(reject).toHaveBeenCalledTimes(0);
@@ -512,7 +537,12 @@ test("runGroup error", async () => {
   const resolve2 = jest.fn();
   const reject2 = jest.fn();
   const error = new Error("test error");
-  const runQuery = jest.fn(() => new Promise((_, reject) => reject(error)));
+  const runQuery = jest.fn(
+    () =>
+      new Promise((_, reject) => {
+        reject(error);
+      }),
+  );
   const group = {
     bundle: createBundle(parse("{ info }")),
     variables: {},
@@ -542,9 +572,8 @@ test("runGroup error", async () => {
   expect(reject2).toHaveBeenCalledTimes(0);
   expect(runQuery.mock.calls).toMatchSnapshot();
 
-  const data = await result;
+  await result;
 
-  expect(undefined).toBe(data);
   expect(resolve).toHaveBeenCalledTimes(0);
   expect(reject).toHaveBeenCalledWith(error);
   expect(reject).toHaveBeenCalledTimes(1);
@@ -561,7 +590,10 @@ test("runGroup split", async () => {
   const resolve2 = jest.fn();
   const reject2 = jest.fn();
   const runQuery = jest.fn(
-    () => new Promise((resolve) => resolve({ data: { info, info_1: info2 } })),
+    () =>
+      new Promise((resolve) => {
+        resolve({ data: { info, info_1: info2 } });
+      }),
   );
   const group = {
     bundle: createBundle(parse("{ info }")),
@@ -592,9 +624,8 @@ test("runGroup split", async () => {
   expect(reject2).toHaveBeenCalledTimes(0);
   expect(runQuery.mock.calls).toMatchSnapshot();
 
-  const data = await result;
+  await result;
 
-  expect(undefined).toBe(data);
   expect(reject).toHaveBeenCalledTimes(0);
   expect(resolve).toHaveBeenCalledWith({
     info: {
@@ -620,14 +651,14 @@ test("runGroup error split", async () => {
   };
   const runQuery = jest.fn(
     () =>
-      new Promise((resolve) =>
+      new Promise((resolve) => {
         resolve({
           errors: [error1],
           data: {
             info,
           },
-        }),
-      ),
+        });
+      }),
   );
   const group = {
     bundle: createBundle(parse("{ info }")),
@@ -658,9 +689,8 @@ test("runGroup error split", async () => {
   expect(reject2).toHaveBeenCalledTimes(0);
   expect(runQuery.mock.calls).toMatchSnapshot();
 
-  const data = await result;
+  await result;
 
-  expect(undefined).toBe(data);
   expect(reject).toHaveBeenCalledTimes(0);
   expect(resolve).toHaveBeenCalledWith({ info: { name: "info" } });
   expect(resolve.mock.calls[0]![0]!.info).toBe(info);
@@ -682,15 +712,15 @@ test("runGroup error split multiple", async () => {
   const error2: GraphQLError = { message: "This error 2" };
   const runQuery = jest.fn(
     () =>
-      new Promise((resolve) =>
+      new Promise((resolve) => {
         resolve({
           errors: [error0, error1, error2],
           data: {
             info,
             info_1: info2,
           },
-        }),
-      ),
+        });
+      }),
   );
   const group: Group = {
     bundle: createBundle(parse("{ info }")),
@@ -721,9 +751,8 @@ test("runGroup error split multiple", async () => {
   expect(reject2).toHaveBeenCalledTimes(0);
   expect(runQuery.mock.calls).toMatchSnapshot();
 
-  const data = await result;
+  await result;
 
-  expect(undefined).toBe(data);
   expect(reject).toHaveBeenCalledWith(queryError([error0, error2], { info }));
   expect(resolve).toHaveBeenCalledTimes(0);
   expect(reject2).toHaveBeenCalledWith(
@@ -765,9 +794,8 @@ test("Run empty group with empty response", async () => {
   expect(resolve).toHaveBeenCalledTimes(0);
   expect(reject).toHaveBeenCalledTimes(0);
 
-  const data = await result;
+  await result;
 
-  expect(undefined).toBe(data);
   expect(resolve).toHaveBeenCalledTimes(0);
   expect(reject).toHaveBeenCalledWith(queryError([error1], {}));
 });

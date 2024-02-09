@@ -10,42 +10,81 @@ import {
   requestError,
 } from "./error";
 
-export type QueryRunner = (query: {
-  query: string;
-  variables: Record<string, unknown>;
-}) => Promise<GraphQLResponse<unknown>>;
-
-export type ClientArgs = {
-  runQuery: QueryRunner;
-  debounce?: number;
-};
-
-export type Client<O> = <P, R>(
-  query: Query<P, R>,
-  variables: P,
-  options?: Readonly<O>,
-) => Promise<R>;
-
 type ResolveFn<T> = (value: T) => void;
 type RejectFn = (error: unknown) => void;
 
-export type Group = {
+/**
+ * A function which takes a GraphQL query along with its required variables,
+ * if any, and returns a promise which resolves to the query result.
+ */
+export type Client = <P, R>(
+  query: Query<P, R>,
+  variables: P
+) => Promise<R>;
+
+/**
+ * Options for createClient().
+ */
+export interface CreateClientOptions {
+  /**
+   * Function which receives the prepared queries and variables to execute.
+   */
+  runQuery: QueryRunner;
+  /**
+   * Time-window for grouping queries together.
+   */
+  debounce?: number;
+}
+
+/**
+ * Interface for a function which runs a GraphQL query.
+ */
+export type QueryRunner = (
+  query: PreparedQuery,
+) => Promise<GraphQLResponse<unknown>>;
+
+/**
+ * A query which has been serialized and grouped with its variables.
+ */
+export interface PreparedQuery {
+  /**
+   * Printed query.
+   */
+  query: string;
+  /**
+   * Variables and their values.
+   */
+  variables: Record<string, unknown>;
+}
+
+/**
+ * @internal
+ */
+export interface Group {
   bundle: QueryBundle;
   variables: Record<string, unknown>;
-  queries: Array<GroupedQuery>;
-};
+  queries: GroupedQuery[];
+}
 
-export type GroupedQuery = {
+/**
+ * @internal
+ */
+export interface GroupedQuery {
   renamedFields: RenameMap;
   resolve: ResolveFn<unknown>;
   reject: RejectFn;
-};
+}
 
-export type GroupedQueryWithError = GroupedQuery & {
-  errors: Array<GraphQLError>;
-};
+/**
+ * @internal
+ */
+export interface GroupedQueryWithError extends GroupedQuery {
+  errors: GraphQLError[];
+}
 
-const resolved: Promise<void> = new Promise((resolve) => resolve(undefined));
+const resolved = new Promise<void>((resolve) => {
+  resolve(undefined);
+});
 
 function setVariable(
   variables: Record<string, unknown>,
@@ -122,8 +161,11 @@ export async function handleFetchResponse<R>(response: Response): Promise<R> {
   }
 }
 
+/**
+ * @internal
+ */
 export function enqueue<P, R>(
-  pending: Array<Group>,
+  pending: Group[],
   newBundle: QueryBundle,
   parameters: P,
   resolve: ResolveFn<R>,
@@ -160,11 +202,13 @@ export function enqueue<P, R>(
  *
  * If an error is not in any of the supplied groups then it is assigned to all
  * of them.
+ *
+ * @internal
  */
 export function groupErrors<T extends { renamedFields: RenameMap }>(
-  errors: Array<GraphQLError>,
-  groups: Array<T>,
-): Array<T & { errors: Array<GraphQLError> }> {
+  errors: GraphQLError[],
+  groups: T[],
+): (T & { errors: GraphQLError[] })[] {
   const groupsWithErrors = groups.map((group) => ({
     ...group,
     // TODO: Maybe use something more efficent
@@ -187,6 +231,9 @@ export function groupErrors<T extends { renamedFields: RenameMap }>(
   return groupsWithErrors;
 }
 
+/**
+ * @internal
+ */
 export async function runGroup(
   runQuery: QueryRunner,
   { bundle, variables, queries }: Group,
@@ -198,7 +245,7 @@ export async function runGroup(
     });
 
     for (const { renamedFields, resolve, reject, errors } of groupErrors(
-      bundledResponse.errors || [],
+      bundledResponse.errors ?? [],
       queries,
     )) {
       const data: Record<string, unknown> = {};
@@ -218,13 +265,18 @@ export async function runGroup(
       }
     }
   } catch (e) {
-    queries.forEach(({ reject }) => reject(e));
+    for (const { reject } of queries) {
+      reject(e);
+    }
   }
 }
 
+/**
+ * @internal
+ */
 export function runGroups(
   runQuery: QueryRunner,
-  groups: Array<Group>,
+  groups: Group[],
 ): Promise<void> {
   return groups.reduce(
     (p, group) => p.then(() => runGroup(runQuery, group)),
@@ -236,10 +288,10 @@ export function runGroups(
 export function createClient({
   runQuery,
   debounce = 50,
-}: ClientArgs): Client<object> {
+}: CreateClientOptions): Client {
   let next = resolved;
   let timer: ReturnType<typeof setTimeout> | undefined;
-  let pending: Array<Group> = [];
+  let pending: Group[] = [];
 
   const fire = (): void => {
     // TODO: Control how this chaining is done?

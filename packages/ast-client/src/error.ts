@@ -1,29 +1,29 @@
 import type { GraphQLError } from "./query";
 
-export type MissingVariableError = Error & {
+export interface MissingVariableError extends Error {
   name: "MissingVariableError";
   variableName: string;
-};
+}
 
-export type RequestError = Error & {
+export interface RequestError extends Error {
   name: "RequestError";
   response: Response;
   statusCode: number;
   bodyText: string;
-};
+}
 
-export type ParseError = Error & {
+export interface ParseError extends Error {
   name: "ParseError";
   response: Response;
   statusCode: number;
   bodyText: string;
-};
+}
 
-export type QueryError = Error & {
+export interface QueryError extends Error {
   name: "QueryError";
-  errors: Array<GraphQLError>;
+  errors: GraphQLError[];
   queryData: Record<string, unknown>;
-};
+}
 
 function graphqlErrorMessage({ message }: GraphQLError): string {
   return message;
@@ -60,7 +60,7 @@ export function parseError(
 }
 
 export function queryError(
-  errors: Array<GraphQLError>,
+  errors: GraphQLError[],
   queryData: Record<string, unknown>,
 ): QueryError {
   const error: QueryError = new Error(
