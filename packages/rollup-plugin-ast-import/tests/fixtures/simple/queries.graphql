@@ -1,0 +1,7 @@
+query foo {
+  info
+}
+
+query bar {
+  more
+}

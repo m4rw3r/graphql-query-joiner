@@ -1,0 +1,11 @@
+type User {
+  name: String!
+}
+
+type Query {
+  user: User
+}
+
+type Mutation {
+  updateUser: Boolean!
+}
