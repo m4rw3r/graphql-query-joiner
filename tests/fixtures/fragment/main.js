@@ -1,4 +1,4 @@
 import { foo, User } from "./queries.graphql";
 
-console.log(foo);
-console.log(User);
+export { foo };
+export { User };

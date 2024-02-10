@@ -1,4 +1,5 @@
 import type { DefinitionNode, FragmentSpreadNode } from "graphql/language";
+import type { Plugin, TransformResult } from "rollup";
 
 import { createFilter } from "@rollup/pluginutils";
 import {
@@ -9,26 +10,11 @@ import {
   visit,
 } from "graphql/language";
 
-type TransformedSource = {
-  code: string;
-  map: {
-    mappings: string;
-  };
-};
-
-type RollupPlugin = {
-  name: string;
-  transform: (
-    source: string,
-    id: string,
-  ) => TransformedSource | null | undefined;
-};
-
-type Options = {
-  include?: string | RegExp | Array<string | RegExp>;
-  exclude?: string | RegExp | Array<string | RegExp>;
+export interface Options {
+  include?: string | RegExp | (string | RegExp)[];
+  exclude?: string | RegExp | (string | RegExp)[];
   typeDefs?: string | false;
-};
+}
 
 const COMMENT_PATTERN = /#([^\n\r]*)/g;
 const IMPORT_PATTERN =
@@ -39,30 +25,27 @@ const makeDocument = (name: string, definitions: string): string =>
 
 const definitionOf = (name: string): string => `${name}.definitions`;
 
-export function graphql(options: Options = {}): RollupPlugin {
+export function graphql(options: Options = {}): Plugin {
   const { include = "**/*.graphql", exclude, typeDefs = "typeDefs" } = options;
   const filter = createFilter(include, exclude);
 
   return {
     name: "graphql-ast-import",
-    transform(
-      gqlSource: string,
-      id: string,
-    ): TransformedSource | null | undefined {
+    transform(gqlSource: string, id: string): TransformResult {
       if (!filter(id)) {
         return;
       }
 
       const source = new Source(gqlSource, id);
       const ast = parse(source, { noLocation: true });
-      const comments = gqlSource.match(COMMENT_PATTERN) || [];
+      const comments = gqlSource.match(COMMENT_PATTERN) ?? [];
       const imports = comments
-        .map((line: string): string | null | undefined => {
+        .map((line: string): string | undefined => {
           // TODO: Error handling with this
           const match = line.match(IMPORT_PATTERN);
 
-          if (!match) {
-            return null;
+          if (!match?.[1]) {
+            return;
           }
 
           const names = match[1]
@@ -75,12 +58,12 @@ export function graphql(options: Options = {}): RollupPlugin {
         .filter(Boolean);
 
       const definitions = ast.definitions.map((d: DefinitionNode): string => {
-        if (!d.name) {
+        if (!("name" in d)) {
           throw new Error("All queries/mutations must be named");
         }
 
         const name = d.name.value;
-        const used = [];
+        const used: string[] = [];
 
         visit(d, {
           FragmentSpread(spread: FragmentSpreadNode): void {
