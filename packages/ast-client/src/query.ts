@@ -2,10 +2,43 @@ import type { DocumentNode } from "graphql/language";
 
 /**
  * A typed GraphQL query with defined parameters and response.
+ *
+ * The `_*` properties never exist, they only carry type information,
+ * also called phantom data. This type-information is used to enforce
+ * query-parameters and responses at compile-time.
+ *
+ * A Query instance can only be constructed using type-assertions.
+ *
+ * Example:
+ *
+ *   interface MyParamerters {
+ *     path: string;
+ *   }
+ *
+ *   interface MyResponse {
+ *     page: {
+ *       contents: string;
+ *     }
+ *   }
+ *
+ *   const myQuery = someDocumentNode as Query<MyParameters, MyResponse>;
+ *
+ *   runQuery(myQuery, { path: "foo" }).page.contents // OK!
+ *   runQuery(myQuery, { path: ["foo"] }) // error
+ *   runQuery(myQuery, { path: "foo" }).contents // error
  */
-// @ts-expect-error We use unused type-parameters to indicate query parameters and response
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export type Query<P, R> = DocumentNode;
+// Non-optional phantom types to make it impossible to assign a non-Query to
+// Query, construction should be done through type-assertions (as keyword).
+export type Query<P, R> = DocumentNode & {
+  /**
+   * Phantom type (never assigned) for the Query variables parameter.
+   */
+  readonly _P: P;
+  /**
+   * Phantom type (never assigned) for the Query return value.
+   */
+  readonly _R: R;
+};
 
 /**
  * The query parameters of a query of type Q.

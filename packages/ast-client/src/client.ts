@@ -1,4 +1,10 @@
-import type { GraphQLResponse, GraphQLError, Query, RenameMap } from "./query";
+import type {
+  EmptyObject,
+  GraphQLResponse,
+  GraphQLError,
+  Query,
+  RenameMap,
+} from "./query";
 import type { QueryBundle } from "./bundle";
 
 import { print } from "graphql/language";
@@ -19,7 +25,14 @@ type RejectFn = (error: unknown) => void;
  */
 export type Client = <P, R>(
   query: Query<P, R>,
-  variables: P
+  // This construction makes the variables parameter optional if P is void or
+  // EmptyObject. We manually split them to make TypeScript consider exactly
+  // undefined for the undefined case.
+  ...args: undefined extends P
+    ? [variables?: undefined]
+    : P extends EmptyObject
+      ? [variables?: P]
+      : [variables: P]
 ) => Promise<R>;
 
 /**
@@ -285,6 +298,9 @@ export function runGroups(
 }
 
 // TODO: Rewrite as class
+/**
+ * Creates a graphql-client.
+ */
 export function createClient({
   runQuery,
   debounce = 50,
@@ -306,7 +322,7 @@ export function createClient({
     });
   };
 
-  return <P, R>(query: Query<P, R>, parameters: P): Promise<R> =>
+  return <P, R>(query: Query<P, R>, parameters?: P): Promise<R> =>
     new Promise<R>((resolve: ResolveFn<R>, reject: RejectFn): void => {
       enqueue(pending, createBundle(query), parameters, resolve, reject);
 

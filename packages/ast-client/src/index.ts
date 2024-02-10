@@ -1,4 +1,5 @@
 export type {
+  EmptyObject,
   Query,
   QueryParameters,
   QueryResult,
