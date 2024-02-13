@@ -26,6 +26,7 @@ const myQuery = {} as Query<MyQueryParams, MyQueryResult>;
 const voidQuery = {} as Query<void, MyQueryResult>;
 const undefinedQuery = {} as Query<undefined, MyQueryResult>;
 const emptyQuery = {} as Query<EmptyObject, MyQueryResult>;
+const emptyRecordQuery = {} as Query<Record<string, never>, MyQueryResult>;
 
 describe("Queries", () => {
   test("are not plain document nodes", () => {
@@ -33,6 +34,7 @@ describe("Queries", () => {
     expect(voidQuery).type.not.toEqual<DocumentNode>();
     expect(undefinedQuery).type.not.toEqual<DocumentNode>();
     expect(emptyQuery).type.not.toEqual<DocumentNode>();
+    expect(emptyRecordQuery).type.not.toEqual<DocumentNode>();
   });
 
   test("All queries are DocumentNodes", () => {
@@ -40,6 +42,7 @@ describe("Queries", () => {
     expect<DocumentNode>().type.toBeAssignable(voidQuery);
     expect<DocumentNode>().type.toBeAssignable(undefinedQuery);
     expect<DocumentNode>().type.toBeAssignable(emptyQuery);
+    expect<DocumentNode>().type.toBeAssignable(emptyRecordQuery);
   });
 
   test("But DocumentNodes are not queries", () => {
@@ -47,6 +50,7 @@ describe("Queries", () => {
     expect(voidQuery).type.not.toBeAssignable<DocumentNode>();
     expect(undefinedQuery).type.not.toBeAssignable<DocumentNode>();
     expect(emptyQuery).type.not.toBeAssignable<DocumentNode>();
+    expect(emptyRecordQuery).type.not.toBeAssignable<DocumentNode>();
   });
 });
 
@@ -64,6 +68,8 @@ describe("Client", () => {
     expect(runQuery(undefinedQuery)).type.toEqual<Promise<MyQueryResult>>();
     expect(runQuery(emptyQuery)).type.toEqual<Promise<MyQueryResult>>();
     expect(runQuery(emptyQuery, {})).type.toEqual<Promise<MyQueryResult>>();
+    expect(runQuery(emptyRecordQuery)).type.toEqual<Promise<MyQueryResult>>();
+    expect(runQuery(emptyRecordQuery, {})).type.toEqual<Promise<MyQueryResult>>();
   });
 
   test("Empty parameters also accept undefined or empty object", () => {
@@ -73,6 +79,8 @@ describe("Client", () => {
     expect(runQuery(undefinedQuery, {})).type.toEqual<Promise<MyQueryResult>>();
     expect(runQuery(emptyQuery, undefined)).type.toEqual<Promise<MyQueryResult>>();
     expect(runQuery(emptyQuery, {})).type.toEqual<Promise<MyQueryResult>>();
+    expect(runQuery(emptyRecordQuery, undefined)).type.toEqual<Promise<MyQueryResult>>();
+    expect(runQuery(emptyRecordQuery, {})).type.toEqual<Promise<MyQueryResult>>();
   });
 
   // TODO: Should it though? This could cause issues later when using
@@ -87,6 +95,10 @@ describe("Client", () => {
   test("Extra parameter should raise error on Query<EmptyObject, _>", () => {
     expect(runQuery(emptyQuery, { test: "foo" })).type.toRaiseError(2322); // "Type string is not assignable to never."
   });
+
+  test("Extra parameter should raise error on Query<Record<string, never>, _>", () => {
+    expect(runQuery(emptyRecordQuery, { test: "foo" })).type.toRaiseError(2322); // "Type string is not assignable to never."
+  });
 });
 
 describe("QueryResult", () => {
@@ -95,6 +107,7 @@ describe("QueryResult", () => {
     expect<QueryResult<typeof voidQuery>>().type.toEqual<MyQueryResult>;
     expect<QueryResult<typeof undefinedQuery>>().type.toEqual<MyQueryResult>;
     expect<QueryResult<typeof emptyQuery>>().type.toEqual<MyQueryResult>;
+    expect<QueryResult<typeof emptyRecordQuery>>().type.toEqual<MyQueryResult>;
   });
 });
 
@@ -104,5 +117,7 @@ describe("QueryParameters", () => {
     expect<QueryParameters<typeof voidQuery>>().type.toEqual<void>;
     expect<QueryParameters<typeof undefinedQuery>>().type.toEqual<undefined>;
     expect<QueryParameters<typeof emptyQuery>>().type.toEqual<EmptyObject>;
+    expect<QueryParameters<typeof emptyRecordQuery>>().type
+      .toEqual<EmptyObject>;
   });
 });
