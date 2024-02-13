@@ -29,6 +29,7 @@ import type { DocumentNode } from "graphql/language";
  */
 // Non-optional phantom types to make it impossible to assign a non-Query to
 // Query, construction should be done through type-assertions (as keyword).
+// TODO: Maybe add restrictions to the parameters?
 export type Query<P, R> = DocumentNode & {
   /**
    * Phantom type (never assigned) for the Query variables parameter.
@@ -43,12 +44,12 @@ export type Query<P, R> = DocumentNode & {
 /**
  * The query parameters of a query of type Q.
  */
-export type QueryParameters<Q> = Q extends Query<infer P, unknown> ? P : never;
+export type QueryParameters<Q> = Q extends Query<infer P, any> ? P : never;
 
 /**
  * The query results of a query of type Q.
  */
-export type QueryResult<Q> = Q extends Query<unknown, infer R> ? R : never;
+export type QueryResult<Q> = Q extends Query<any, infer R> ? R : never;
 
 /**
  * Type describing an object which cannot have any properties ever.

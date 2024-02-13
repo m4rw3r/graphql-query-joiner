@@ -1,4 +1,5 @@
 // File testing types
+//
 // See https://tstyche.org/
 
 import type { EmptyObject, Query, QueryParameters, QueryResult } from "./query";
@@ -16,8 +17,10 @@ interface MyQueryResult {
 }
 
 // Dummy client
-const runQuery: Client = <P, R>(_query: Query<P, R>, _params?: P): Promise<R> =>
-  ({}) as Promise<R>;
+const runQuery: Client = <Q extends Query<any, any>>(
+  _query: Q,
+  _params?: QueryParameters<Q> | EmptyObject,
+): Promise<QueryResult<Q>> => ({}) as Promise<QueryResult<Q>>;
 
 const myQuery = {} as Query<MyQueryParams, MyQueryResult>;
 const voidQuery = {} as Query<void, MyQueryResult>;
@@ -63,12 +66,22 @@ describe("Client", () => {
     expect(runQuery(emptyQuery, {})).type.toEqual<Promise<MyQueryResult>>();
   });
 
+  test("Empty parameters also accept undefined or empty object", () => {
+    expect(runQuery(voidQuery, undefined)).type.toEqual<Promise<MyQueryResult>>();
+    expect(runQuery(voidQuery, {})).type.toEqual<Promise<MyQueryResult>>();
+    expect(runQuery(undefinedQuery, undefined)).type.toEqual<Promise<MyQueryResult>>();
+    expect(runQuery(undefinedQuery, {})).type.toEqual<Promise<MyQueryResult>>();
+    expect(runQuery(emptyQuery, undefined)).type.toEqual<Promise<MyQueryResult>>();
+    expect(runQuery(emptyQuery, {})).type.toEqual<Promise<MyQueryResult>>();
+  });
+
+  // TODO: Should it though? This could cause issues later when using
   test("Extra parameter should raise error on Query<void, _>", () => {
-    expect(runQuery(voidQuery, { test: "foo" })).type.toRaiseError(2345);
+    expect(runQuery(voidQuery, { test: "foo" })).type.toRaiseError(2322); // "Type string is not assignable to never."
   });
 
   test("Extra parameter should raise error on Query<undefined, _>", () => {
-    expect(runQuery(undefinedQuery, { test: "foo" })).type.toRaiseError(2345);
+    expect(runQuery(undefinedQuery, { test: "foo" })).type.toRaiseError(2322); // "Type string is not assignable to never."
   });
 
   test("Extra parameter should raise error on Query<EmptyObject, _>", () => {

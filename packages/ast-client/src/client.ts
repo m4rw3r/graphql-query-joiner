@@ -3,6 +3,8 @@ import type {
   GraphQLResponse,
   GraphQLError,
   Query,
+  QueryParameters,
+  QueryResult,
   RenameMap,
 } from "./query";
 import type { QueryBundle } from "./bundle";
@@ -20,20 +22,30 @@ type ResolveFn<T> = (value: T) => void;
 type RejectFn = (error: unknown) => void;
 
 /**
+ * Type resolving to a list with a single optional parameter if the supplied
+ * type is undefined/void/strict-empty-object, otherwise it is a requried
+ * parameter.
+ *
+ * We manually split them to make TypeScript consider exactly undefined for
+ * the undefined case, otherwise undefined as T here will result in a mandatory
+ * parameter.
+ */
+export type OptionalParameterIfEmpty<T> = undefined extends T
+  ? [variables?: EmptyObject | undefined]
+  : T extends EmptyObject
+    ? [variables?: EmptyObject | undefined]
+    : [variables: T];
+
+/**
  * A function which takes a GraphQL query along with its required variables,
  * if any, and returns a promise which resolves to the query result.
  */
-export type Client = <P, R>(
-  query: Query<P, R>,
+export type Client = <Q extends Query<any, any>>(
+  query: Q,
   // This construction makes the variables parameter optional if P is void or
-  // EmptyObject. We manually split them to make TypeScript consider exactly
-  // undefined for the undefined case.
-  ...args: undefined extends P
-    ? [variables?: undefined]
-    : P extends EmptyObject
-      ? [variables?: P]
-      : [variables: P]
-) => Promise<R>;
+  // EmptyObject.
+  ...args: OptionalParameterIfEmpty<QueryParameters<Q>>
+) => Promise<QueryResult<Q>>;
 
 /**
  * Options for createClient().
@@ -322,9 +334,14 @@ export function createClient({
     });
   };
 
-  return <P, R>(query: Query<P, R>, parameters?: P): Promise<R> =>
-    new Promise<R>((resolve: ResolveFn<R>, reject: RejectFn): void => {
-      enqueue(pending, createBundle(query), parameters, resolve, reject);
+  // TODO: Do we make the consumer wrap the created Client in a cache if to
+  // provide caching?
+  return <Q extends Query<any, any>>(
+    query: Q,
+    variables?: QueryParameters<Q> | EmptyObject,
+  ): Promise<QueryResult<Q>> =>
+    new Promise((resolve, reject): void => {
+      enqueue(pending, createBundle(query), variables, resolve, reject);
 
       if (!timer) {
         timer = setTimeout(fire, debounce);
