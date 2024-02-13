@@ -16,7 +16,9 @@
     "check": "tsc --noEmit",
     "clean": "rm -rf coverage dist",
     "prepack": "pnpm run clean && pnpm run build",
-    "test": "jest && tstyche",
+    "test": "pnpm run \"/jest|test:types/\"",
+    "jest": "jest",
+    "test:types": "tstyche",
     "test:watch": "jest --watch"
   },
   "dependencies": {
