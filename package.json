@@ -12,7 +12,7 @@
   "license": "MIT",
   "scripts": {
     "build": "pnpm -r build",
-    "check": "tsc --noEmit",
+    "check": "pnpm -r check",
     "lint": "eslint .",
     "clean": "pnpm -r clean",
     "dist": "pnpm run clean && pnpm run check && pnpm run test && pnpm run format:check && pnpm run build && pnpm run lint",

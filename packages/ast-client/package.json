@@ -13,6 +13,7 @@
     "build": "pnpm run \"/^build:.*/\"",
     "build:d.ts": "rollup -c",
     "build:js": "tsc --project tsconfig.build.json",
+    "check": "tsc --noEmit",
     "clean": "rm -rf coverage dist",
     "prepack": "pnpm run clean && pnpm run build",
     "test": "jest && tstyche",
