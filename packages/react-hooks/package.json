@@ -1,0 +1,37 @@
+{
+  "name": "@awardit/react-graphql-hooks",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "pnpm run build:d.ts && pnpm run build:js",
+    "build:d.ts": "rollup -c",
+    "build:js": "tsc --project tsconfig.build.json",
+    "check": "tsc --noEmit",
+    "clean": "rm -rf coverage dist",
+    "prepack": "pnpm run clean && pnpm run build",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "devDependencies": {
+    "@awardit/graphql-ast-client": "workspace:1.0.0-rc1",
+    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/react": "^14.2.1",
+    "@types/react": "^18.2.55",
+    "@types/react-dom": "^18.2.19",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "peerDependencies": {
+    "@awardit/graphql-ast-client": "workspace:1.0.0-rc1",
+    "react": "^18.2.0"
+  },
+  "dependencies": {
+    "@m4rw3r/react-pause-champ": "^0.1.4"
+  }
+}
