@@ -2,16 +2,18 @@ export type {
   EmptyObject,
   GraphQLError,
   GraphQLResponse,
+  Mutation,
+  Operation,
+  OperationParameters,
+  OperationResult,
   Query,
-  QueryParameters,
-  QueryResult,
 } from "./query";
 export type {
   Client,
   CreateClientOptions,
   OptionalParameterIfEmpty,
-  PreparedQuery,
-  QueryRunner,
+  PreparedOperation,
+  RunOperation,
 } from "./client";
 
 export { createClient, handleFetchResponse } from "./client";

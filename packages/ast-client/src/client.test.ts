@@ -1,4 +1,4 @@
-import type { Group, QueryRunner } from "./client";
+import type { Group, RunOperation } from "./client";
 import type { GraphQLError } from "./query";
 
 import { parse, print } from "graphql/language";
@@ -337,128 +337,237 @@ test("enqueue different", () => {
   expect(reject3).toHaveBeenCalledTimes(0);
 });
 
-test("handleFetchResponse text throw not ok", async () => {
-  const testError = new Error("Failed test-reading");
-  const response = {
-    ok: false,
-    status: 123,
-    text: jest.fn(
-      () =>
-        new Promise((_, reject) => {
-          reject(testError);
-        }),
-    ),
-  };
-  let error: any;
+describe("handleFetchResponse", () => {
+  test("text throw not ok", async () => {
+    const testError = new Error("Failed test-reading");
+    const response = {
+      ok: false,
+      status: 123,
+      headers: new Map(),
+      text: jest.fn(
+        () =>
+          new Promise((_, reject) => {
+            reject(testError);
+          }),
+      ),
+    };
+    let error: any;
 
-  try {
-    await handleFetchResponse(response as any);
-  } catch (e) {
-    error = e;
-  }
+    try {
+      await handleFetchResponse(response as any);
+    } catch (e) {
+      error = e;
+    }
 
-  expect(error).toBe(testError);
-  expect(response.text).toHaveBeenCalledTimes(1);
-  expect(response.text).toHaveBeenCalledWith();
-});
+    expect(error).toBe(testError);
+    expect(response.text).toHaveBeenCalledTimes(1);
+    expect(response.text).toHaveBeenCalledWith();
+  });
 
-test("handleFetchResponse text throw ok", async () => {
-  const testError = new Error("Failed test-reading");
-  const response = {
-    ok: true,
-    status: 200,
-    text: jest.fn(
-      () =>
-        new Promise((_, reject) => {
-          reject(testError);
-        }),
-    ),
-  };
-  let error: any;
+  test("text throw ok", async () => {
+    const testError = new Error("Failed test-reading");
+    const response = {
+      ok: true,
+      status: 200,
+      headers: new Map(),
+      text: jest.fn(
+        () =>
+          new Promise((_, reject) => {
+            reject(testError);
+          }),
+      ),
+    };
+    let error: any;
 
-  try {
-    await handleFetchResponse(response as any);
-  } catch (e) {
-    error = e;
-  }
+    try {
+      await handleFetchResponse(response as any);
+    } catch (e) {
+      error = e;
+    }
 
-  expect(error).toBe(testError);
-  expect(response.text).toHaveBeenCalledTimes(1);
-  expect(response.text).toHaveBeenCalledWith();
-});
+    expect(error).toBe(testError);
+    expect(response.text).toHaveBeenCalledTimes(1);
+    expect(response.text).toHaveBeenCalledWith();
+  });
 
-test("handleFetchResponse not ok", async () => {
-  const response = {
-    ok: false,
-    status: 123,
-    text: jest.fn(
-      () =>
-        new Promise((resolve) => {
-          resolve(`{"data": { "info": true } }`);
-        }),
-    ),
-  };
-  let error: any;
+  test("ok, bad content type", async () => {
+    const response = {
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      headers: new Map(),
+      text: jest.fn(
+        () =>
+          new Promise((resolve) => {
+            resolve(`{"data": { "info": true } }`);
+          }),
+      ),
+    };
+    let error: any;
 
-  try {
-    await handleFetchResponse(response as any);
-  } catch (e) {
-    error = e;
-  }
+    try {
+      await handleFetchResponse(response as any);
+    } catch (e) {
+      error = e;
+    }
 
-  expect(error.name).toBe("RequestError");
-  expect(error.message).toBe("Received status code 123");
-  expect(error.statusCode).toBe(123);
-  expect(error.bodyText).toBe(`{"data": { "info": true } }`);
-  expect(error.response).toBe(response);
-  expect(response.text).toHaveBeenCalledTimes(1);
-  expect(response.text).toHaveBeenCalledWith();
-});
+    expect(error.name).toBe("RequestError");
+    expect(error.message).toBe("Unexpected Content-Type undefined");
+    expect(error.statusCode).toBe(200);
+    expect(error.bodyText).toBe(`{"data": { "info": true } }`);
+    expect(error.response).toBe(response);
+    expect(response.text).toHaveBeenCalledTimes(1);
+    expect(response.text).toHaveBeenCalledWith();
+  });
 
-test("handleFetchResponse ok bad JSON", async () => {
-  const response = {
-    ok: true,
-    status: 200,
-    text: jest.fn(
-      () =>
-        new Promise((resolve) => {
-          resolve("The text");
-        }),
-    ),
-  };
-  let error: any;
+  test("not ok, bad content type", async () => {
+    const response = {
+      ok: false,
+      status: 400,
+      statusText: "Bad Request",
+      headers: new Map(),
+      text: jest.fn(
+        () =>
+          new Promise((resolve) => {
+            resolve(`{"data": { "info": true } }`);
+          }),
+      ),
+    };
+    let error: any;
 
-  try {
-    await handleFetchResponse(response as any);
-  } catch (e) {
-    error = e;
-  }
+    try {
+      await handleFetchResponse(response as any);
+    } catch (e) {
+      error = e;
+    }
 
-  expect(error.name).toBe("ParseError");
-  expect(error.message).toMatch(/SyntaxError: Unexpected token/);
-  expect(error.statusCode).toBe(200);
-  expect(error.bodyText).toBe("The text");
-  expect(error.response).toBe(response);
-  expect(response.text).toHaveBeenCalledTimes(1);
-  expect(response.text).toHaveBeenCalledWith();
-});
+    expect(error.name).toBe("RequestError");
+    expect(error.message).toBe("Received status 400 Bad Request");
+    expect(error.statusCode).toBe(400);
+    expect(error.bodyText).toBe(`{"data": { "info": true } }`);
+    expect(error.response).toBe(response);
+    expect(response.text).toHaveBeenCalledTimes(1);
+    expect(response.text).toHaveBeenCalledWith();
+  });
 
-test("handleFetchResponse", async () => {
-  const response = {
-    ok: true,
-    status: 200,
-    text: jest.fn(
-      () =>
-        new Promise((resolve) => {
-          resolve(`{"data": { "info": true } }`);
-        }),
-    ),
-  };
-  const data = await handleFetchResponse(response as any);
+  test("ok bad JSON", async () => {
+    const response = {
+      ok: true,
+      status: 200,
+      headers: new Map([["Content-Type", "application/graphql+json"]]),
+      text: jest.fn(
+        () =>
+          new Promise((resolve) => {
+            resolve("The text");
+          }),
+      ),
+    };
+    let error: any;
 
-  expect(data).toEqual({ data: { info: true } });
-  expect(response.text).toHaveBeenCalledTimes(1);
-  expect(response.text).toHaveBeenCalledWith();
+    try {
+      await handleFetchResponse(response as any);
+    } catch (e) {
+      error = e;
+    }
+
+    expect(error.name).toBe("ParseError");
+    expect(error.message).toMatch(/SyntaxError: Unexpected token/);
+    expect(error.statusCode).toBe(200);
+    expect(error.bodyText).toBe("The text");
+    expect(error.response).toBe(response);
+    expect(response.text).toHaveBeenCalledTimes(1);
+    expect(response.text).toHaveBeenCalledWith();
+  });
+
+  test("normal response", async () => {
+    const response = {
+      ok: true,
+      status: 200,
+      headers: new Map([["Content-Type", "application/graphql+json"]]),
+      text: jest.fn(
+        () =>
+          new Promise((resolve) => {
+            resolve(`{"data": { "info": true } }`);
+          }),
+      ),
+    };
+    const data = await handleFetchResponse(response as any);
+
+    expect(data).toEqual({ data: { info: true } });
+    expect(response.text).toHaveBeenCalledTimes(1);
+    expect(response.text).toHaveBeenCalledWith();
+  });
+
+  test("partial response", async () => {
+    const response = {
+      ok: true,
+      status: 200,
+      headers: new Map([["Content-Type", "application/json"]]),
+      text: jest.fn(
+        () =>
+          new Promise((resolve) => {
+            resolve(
+              `{"data": { "info": true }, "errors": [{ "message": "Test error" }] }`,
+            );
+          }),
+      ),
+    };
+    let result: any;
+    let error: any;
+
+    try {
+      result = await handleFetchResponse(response as any);
+    } catch (e) {
+      error = e;
+    }
+
+    expect(error).toBeUndefined();
+    expect(result).toEqual({
+      data: { info: true },
+      errors: [{ message: "Test error" }],
+    });
+    expect(response.text).toHaveBeenCalledTimes(1);
+    expect(response.text).toHaveBeenCalledWith();
+  });
+
+  // TODO: Is this really a query error?
+  test("formatted error response", async () => {
+    const response = {
+      ok: false,
+      status: 400,
+      headers: new Map([["Content-Type", "application/json"]]),
+      text: jest.fn(
+        () =>
+          new Promise((resolve) => {
+            resolve(
+              `{ "errors": [{ "message": "Something went bad parsing query", "extensions": { "code": "graphql" } }] }`,
+            );
+          }),
+      ),
+    };
+    let result: any;
+    let error: any;
+
+    try {
+      result = await handleFetchResponse(response as any);
+    } catch (e) {
+      error = e;
+    }
+    expect(error).toBeUndefined();
+    expect(result).toEqual({
+      errors: [
+        {
+          message: "Something went bad parsing query",
+          extensions: {
+            code: "graphql",
+          },
+        },
+      ],
+    });
+
+    expect(response.text).toHaveBeenCalledTimes(1);
+    expect(response.text).toHaveBeenCalledWith();
+  });
 });
 
 // prettier-ignore
@@ -516,7 +625,7 @@ test("runGroup", async () => {
       },
     ],
   };
-  const result = runGroup(runQuery as QueryRunner, group);
+  const result = runGroup(runQuery as RunOperation, group);
 
   expect(result instanceof Promise).toBe(true);
   expect(resolve).toHaveBeenCalledTimes(0);
@@ -563,7 +672,7 @@ test("runGroup error", async () => {
       },
     ],
   };
-  const result = runGroup(runQuery as QueryRunner, group);
+  const result = runGroup(runQuery as RunOperation, group);
 
   expect(result instanceof Promise).toBe(true);
   expect(resolve).toHaveBeenCalledTimes(0);
@@ -615,7 +724,7 @@ test("runGroup split", async () => {
       },
     ],
   };
-  const result = runGroup(runQuery as QueryRunner, group);
+  const result = runGroup(runQuery as RunOperation, group);
 
   expect(result instanceof Promise).toBe(true);
   expect(resolve).toHaveBeenCalledTimes(0);
@@ -680,7 +789,7 @@ test("runGroup error split", async () => {
       },
     ],
   };
-  const result = runGroup(runQuery as QueryRunner, group);
+  const result = runGroup(runQuery as RunOperation, group);
 
   expect(result instanceof Promise).toBe(true);
   expect(resolve).toHaveBeenCalledTimes(0);
@@ -742,7 +851,7 @@ test("runGroup error split multiple", async () => {
       },
     ],
   };
-  const result = runGroup(runQuery as QueryRunner, group);
+  const result = runGroup(runQuery as RunOperation, group);
 
   expect(result instanceof Promise).toBe(true);
   expect(resolve).toHaveBeenCalledTimes(0);

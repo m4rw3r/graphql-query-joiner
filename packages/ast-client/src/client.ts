@@ -2,9 +2,9 @@ import type {
   EmptyObject,
   GraphQLResponse,
   GraphQLError,
-  Query,
-  QueryParameters,
-  QueryResult,
+  Operation,
+  OperationParameters,
+  OperationResult,
   RenameMap,
 } from "./query";
 import type { QueryBundle } from "./bundle";
@@ -40,12 +40,12 @@ export type OptionalParameterIfEmpty<T> = undefined extends T
  * A function which takes a GraphQL query along with its required variables,
  * if any, and returns a promise which resolves to the query result.
  */
-export type Client = <Q extends Query<any, any>>(
-  query: Q,
+export type Client = <O extends Operation<any, any>>(
+  operation: O,
   // This construction makes the variables parameter optional if P is void or
   // EmptyObject.
-  ...args: OptionalParameterIfEmpty<QueryParameters<Q>>
-) => Promise<QueryResult<Q>>;
+  ...args: OptionalParameterIfEmpty<OperationParameters<O>>
+) => Promise<OperationResult<O>>;
 
 /**
  * Options for createClient().
@@ -53,8 +53,11 @@ export type Client = <Q extends Query<any, any>>(
 export interface CreateClientOptions {
   /**
    * Function which receives the prepared queries and variables to execute.
+   *
+   * It is expected to throw if the request fails or the response is not a
+   * GraphQL Response.
    */
-  runQuery: QueryRunner;
+  runOperation: RunOperation;
   /**
    * Time-window for grouping queries together.
    */
@@ -62,20 +65,20 @@ export interface CreateClientOptions {
 }
 
 /**
- * Interface for a function which runs a GraphQL query.
+ * Interface for a function which runs a GraphQL operation.
  */
-export type QueryRunner = (
-  query: PreparedQuery,
+export type RunOperation = (
+  operation: PreparedOperation,
 ) => Promise<GraphQLResponse<unknown>>;
 
 /**
- * A query which has been serialized and grouped with its variables.
+ * An operation which has been serialized and grouped with its variables.
  */
-export interface PreparedQuery {
+export interface PreparedOperation {
   /**
-   * Printed query.
+   * Printed operation.
    */
-  query: string;
+  operation: string;
   /**
    * Variables and their values.
    */
@@ -123,7 +126,7 @@ function setVariable(
     Object.prototype.hasOwnProperty.call(parameters, nameInAst)
   ) {
     // SAFETY: If we are requesting variables and pass these checks, we can
-    // assume it is a correct variable typed based on the Query
+    // assume it is a correct variable typed based on the Query/Mutation
     variables[nameInQuery] = (parameters as Record<string, unknown>)[nameInAst];
   } else {
     throw missingVariableError(nameInAst);
@@ -167,20 +170,41 @@ function createGroup<P, R>(
  * throws if the request is not ok or if JSON fails to parse.
  */
 export async function handleFetchResponse<R>(response: Response): Promise<R> {
+  const contentType = response.headers.get("Content-Type");
   const bodyText = await response.text();
 
-  if (!response.ok) {
+  // ContentType for GraphQL responses are either
+  // application/json, or application/graphql-response+json.
+  // Encoding can also be present.
+  //
+  // See https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md
+  if (!/application\/.*json/i.test(contentType ?? "")) {
     throw requestError(
       response,
       bodyText,
-      `Received status code ${response.status}`,
+      !response.ok
+        ? `Received status ${response.status} ${response.statusText}`
+        : `Unexpected Content-Type ${contentType}`,
     );
   }
 
   try {
-    // SAFETY: Since it is successful we assume we have GraphQL-data in the
-    // correct format
-    return JSON.parse(bodyText) as R;
+    const data = JSON.parse(bodyText);
+
+    if (
+      ("errors" in data && Array.isArray(data.errors)) ||
+      ("data" in data && typeof data.data === "object")
+    ) {
+      // SAFETY: Since it is successful with data and/or errors we assume we
+      // have GraphQL-data in the correct format:
+      return data as R;
+    }
+
+    throw requestError(
+      response,
+      bodyText,
+      `Received unexpected JSON body content: ${bodyText}`,
+    );
   } catch (error) {
     throw parseError(response, bodyText, error);
   }
@@ -260,12 +284,12 @@ export function groupErrors<T extends { renamedFields: RenameMap }>(
  * @internal
  */
 export async function runGroup(
-  runQuery: QueryRunner,
+  runOperation: RunOperation,
   { bundle, variables, queries }: Group,
 ): Promise<void> {
   try {
-    const bundledResponse = await runQuery({
-      query: print(createDocument(bundle)),
+    const bundledResponse = await runOperation({
+      operation: print(createDocument(bundle)),
       variables,
     });
 
@@ -300,11 +324,11 @@ export async function runGroup(
  * @internal
  */
 export function runGroups(
-  runQuery: QueryRunner,
+  runOperation: RunOperation,
   groups: Group[],
 ): Promise<void> {
   return groups.reduce(
-    (p, group) => p.then(() => runGroup(runQuery, group)),
+    (p, group) => p.then(() => runGroup(runOperation, group)),
     resolved,
   );
 }
@@ -314,7 +338,7 @@ export function runGroups(
  * Creates a graphql-client.
  */
 export function createClient({
-  runQuery,
+  runOperation,
   debounce = 50,
 }: CreateClientOptions): Client {
   let next = resolved;
@@ -324,7 +348,7 @@ export function createClient({
   const fire = (): void => {
     // TODO: Control how this chaining is done?
     next = next.then((): Promise<void> => {
-      const r = runGroups(runQuery, pending);
+      const r = runGroups(runOperation, pending);
 
       // Clear now that we fired off stuff
       pending = [];
@@ -336,12 +360,12 @@ export function createClient({
 
   // TODO: Do we make the consumer wrap the created Client in a cache if to
   // provide caching?
-  return <Q extends Query<any, any>>(
-    query: Q,
-    variables?: QueryParameters<Q> | EmptyObject,
-  ): Promise<QueryResult<Q>> =>
+  return <O extends Operation<any, any>>(
+    operation: O,
+    variables?: OperationParameters<O> | EmptyObject,
+  ): Promise<OperationResult<O>> =>
     new Promise((resolve, reject): void => {
-      enqueue(pending, createBundle(query), variables, resolve, reject);
+      enqueue(pending, createBundle(operation), variables, resolve, reject);
 
       if (!timer) {
         timer = setTimeout(fire, debounce);

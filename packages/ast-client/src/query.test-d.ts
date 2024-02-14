@@ -2,7 +2,14 @@
 //
 // See https://tstyche.org/
 
-import type { EmptyObject, Query, QueryParameters, QueryResult } from "./query";
+import type {
+  EmptyObject,
+  Mutation,
+  Operation,
+  OperationParameters,
+  OperationResult,
+  Query,
+} from "./query";
 import type { Client } from "./client";
 import type { DocumentNode } from "graphql/language";
 import { describe, expect, test } from "tstyche";
@@ -17,16 +24,18 @@ interface MyQueryResult {
 }
 
 // Dummy client
-const runQuery: Client = <Q extends Query<any, any>>(
-  _query: Q,
-  _params?: QueryParameters<Q> | EmptyObject,
-): Promise<QueryResult<Q>> => ({}) as Promise<QueryResult<Q>>;
+const runQuery: Client = <O extends Operation<any, any>>(
+  _query: O,
+  _params?: OperationParameters<O> | EmptyObject,
+): Promise<OperationResult<O>> => ({}) as Promise<OperationResult<O>>;
 
 const myQuery = {} as Query<MyQueryParams, MyQueryResult>;
 const voidQuery = {} as Query<void, MyQueryResult>;
 const undefinedQuery = {} as Query<undefined, MyQueryResult>;
 const emptyQuery = {} as Query<EmptyObject, MyQueryResult>;
 const emptyRecordQuery = {} as Query<Record<string, never>, MyQueryResult>;
+
+// TODO: Query vs Mutation vs Operation
 
 describe("Queries", () => {
   test("are not plain document nodes", () => {
@@ -51,6 +60,14 @@ describe("Queries", () => {
     expect(undefinedQuery).type.not.toBeAssignable<DocumentNode>();
     expect(emptyQuery).type.not.toBeAssignable<DocumentNode>();
     expect(emptyRecordQuery).type.not.toBeAssignable<DocumentNode>();
+  });
+
+  test("are not Mutations", () => {
+    expect(myQuery).type.not.toBeAssignable<Mutation<any, any>>();
+    expect(voidQuery).type.not.toBeAssignable<Mutation<any, any>>();
+    expect(undefinedQuery).type.not.toBeAssignable<Mutation<any, any>>();
+    expect(emptyQuery).type.not.toBeAssignable<Mutation<any, any>>();
+    expect(emptyRecordQuery).type.not.toBeAssignable<Mutation<any, any>>();
   });
 });
 
@@ -101,23 +118,26 @@ describe("Client", () => {
   });
 });
 
-describe("QueryResult", () => {
-  test("QueryResult should resolve to the type of the result", () => {
-    expect<QueryResult<typeof myQuery>>().type.toEqual<MyQueryResult>;
-    expect<QueryResult<typeof voidQuery>>().type.toEqual<MyQueryResult>;
-    expect<QueryResult<typeof undefinedQuery>>().type.toEqual<MyQueryResult>;
-    expect<QueryResult<typeof emptyQuery>>().type.toEqual<MyQueryResult>;
-    expect<QueryResult<typeof emptyRecordQuery>>().type.toEqual<MyQueryResult>;
+describe("OperationResult", () => {
+  test("OperationResult should resolve to the type of the result", () => {
+    expect<OperationResult<typeof myQuery>>().type.toEqual<MyQueryResult>;
+    expect<OperationResult<typeof voidQuery>>().type.toEqual<MyQueryResult>;
+    expect<OperationResult<typeof undefinedQuery>>().type
+      .toEqual<MyQueryResult>;
+    expect<OperationResult<typeof emptyQuery>>().type.toEqual<MyQueryResult>;
+    expect<OperationResult<typeof emptyRecordQuery>>().type
+      .toEqual<MyQueryResult>;
   });
 });
 
-describe("QueryParameters", () => {
-  test("QueryParameters should resolve to the type of the parameters", () => {
-    expect<QueryParameters<typeof myQuery>>().type.toEqual<MyQueryParams>;
-    expect<QueryParameters<typeof voidQuery>>().type.toEqual<void>;
-    expect<QueryParameters<typeof undefinedQuery>>().type.toEqual<undefined>;
-    expect<QueryParameters<typeof emptyQuery>>().type.toEqual<EmptyObject>;
-    expect<QueryParameters<typeof emptyRecordQuery>>().type
+describe("OperationParameters", () => {
+  test("OperationParameters should resolve to the type of the parameters", () => {
+    expect<OperationParameters<typeof myQuery>>().type.toEqual<MyQueryParams>;
+    expect<OperationParameters<typeof voidQuery>>().type.toEqual<void>;
+    expect<OperationParameters<typeof undefinedQuery>>().type
+      .toEqual<undefined>;
+    expect<OperationParameters<typeof emptyQuery>>().type.toEqual<EmptyObject>;
+    expect<OperationParameters<typeof emptyRecordQuery>>().type
       .toEqual<EmptyObject>;
   });
 });
