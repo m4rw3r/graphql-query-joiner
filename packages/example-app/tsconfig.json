@@ -1,0 +1,25 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react",
+    "jsxFactory": "createElement",
+    "jsxFragmentFactory": "createFragment",
+    /*
+    https://vitejs.dev/guide/migration#rollup-4
+    */
+    "moduleResolution": "bundler",
+    "paths": {
+      /*
+      We have to map client manifest JSON here without relative path so we
+      can declare types for it in typings.d.ts:
+      */
+      "@manifest": ["./dist/client/.vite/manifest.json"],
+      /* Duplicated from root */
+      "@awardit/graphql-ast-client": ["../ast-client/src/index.ts"],
+      "@awardit/graphql-react-hooks": ["../react-hooks/src/index.ts"],
+      "@awardit/rollup-plugin-graphql-ast-import": [
+        "../rollup-plugin-ast-import/src/index.ts"
+      ]
+    }
+  }
+}
