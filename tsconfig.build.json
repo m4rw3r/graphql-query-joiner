@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "declaration": false,
+    "declarationMap": false,
+    "declarationDir": null,
+    "sourceMap": true,
+    "removeComments": true,
+    "moduleResolution": "node",
+    "paths": []
+  },
+  // Empty files so we never build this folder by mistake
+  "files": []
+}

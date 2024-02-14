@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../../tsconfig.build.json",
   // Typescript has awful defaults, so we have to inlcude/exclude to not get
   // everything including the kitchen sink compiled:
   "include": ["src/**/*.ts", "src/**/*.tsx"],
@@ -7,10 +7,6 @@
   "files": ["./src/index.ts"],
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "dist",
-    "declaration": false,
-    "declarationMap": false,
-    "declarationDir": null,
-    "removeComments": true
+    "outDir": "dist"
   }
 }

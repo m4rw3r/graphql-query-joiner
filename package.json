@@ -11,7 +11,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "build": "pnpm -r build",
+    "build": "pnpm -r build:d.ts && pnpm -r build:js",
     "check": "pnpm -r check",
     "lint": "eslint .",
     "clean": "pnpm -r clean",
@@ -30,6 +30,7 @@
     "jest": "^29.7.0",
     "prettier": "^3.2.5",
     "rollup": "^4.10.0",
+    "rollup-plugin-auto-external": "^2.0.0",
     "rollup-plugin-dts": "^6.1.0",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",

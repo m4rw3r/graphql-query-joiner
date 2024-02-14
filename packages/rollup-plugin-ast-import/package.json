@@ -17,7 +17,7 @@
   "module": "dist/index.js",
   "sideEffects": false,
   "scripts": {
-    "build": "pnpm run \"/^build:.*/\"",
+    "build": "pnpm run build:d.ts && pnpm run build:js",
     "build:d.ts": "rollup -c",
     "build:js": "tsc --project tsconfig.build.json",
     "check": "tsc --noEmit",

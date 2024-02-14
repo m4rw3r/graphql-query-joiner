@@ -5,18 +5,19 @@
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "sideEffects": false,
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "pnpm run \"/^build:.*/\"",
+    "build": "pnpm run build:d.ts && pnpm run build:js",
     "build:d.ts": "rollup -c",
     "build:js": "tsc --project tsconfig.build.json",
     "check": "tsc --noEmit",
     "clean": "rm -rf coverage dist",
     "prepack": "pnpm run clean && pnpm run build",
-    "test": "pnpm run \"/jest|test:types/\"",
+    "test": "pnpm run jest && pnpm run test:types",
     "jest": "jest",
     "test:types": "tstyche",
     "test:watch": "jest --watch"
