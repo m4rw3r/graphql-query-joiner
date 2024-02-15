@@ -104,12 +104,13 @@ export type Operation<P, R> = DocumentNode & {
  * The parameters of an operation of type O.
  */
 export type OperationParameters<O> =
-  O extends Operation<infer P, any> ? P : never;
+  O extends Operation<infer P, unknown> ? P : never;
 
 /**
  * The results of an operation of type O.
  */
-export type OperationResult<O> = O extends Operation<any, infer R> ? R : never;
+export type OperationResult<O> =
+  O extends Operation<unknown, infer R> ? R : never;
 
 /**
  * Type describing an object which cannot have any properties ever.

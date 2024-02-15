@@ -39,8 +39,10 @@ interface UseQueryExtra {
 
 /**
  *
+ *
+ * NOTE: Query-names should be unique for each query
  */
-export function useQuery<Q extends Query<any, any>>(
+export function useQuery<Q extends Query<unknown, unknown>>(
   query: Q,
   ...args: OptionalParameterIfEmpty<OperationParameters<Q>>
   // , options?: UseQueryOptions = {}
@@ -58,22 +60,29 @@ export function useQuery<Q extends Query<any, any>>(
     QUERY_PREFIX + name + ":" + JSON.stringify(args[0]),
     () => client(query, ...args),
   );
-  (value as UseQueryExtra).refetch = useCallback(
-    () => update(client(query, ...args)),
-    [args[0]],
-  );
+  (value as UseQueryExtra).refetch = useCallback(() => {
+    update(client(query, ...args));
+  }, [args[0]]);
 
-  if (!shallowEquals(oldParams, args[0] || {})) {
+  if (
+    !shallowEquals(
+      oldParams.current as Record<string, unknown>,
+      (args[0] || {}) as Record<string, unknown>,
+    )
+  ) {
     // Since we are suspending on this, we cannot update while being suspended.
     // TODO: We want to throw immediately here, to avoid re-render, expose
     //       PauseChamp internals through separate package?
+    //       Will this also work with react's scheduling?
     update(client(query, ...args));
   }
 
-  return value;
+  return value as OperationResult<Q> & UseQueryExtra;
 }
 
-export interface ExecuteOperationCallback<O extends Operation<any, any>> {
+export interface ExecuteOperationCallback<
+  O extends Operation<unknown, unknown>,
+> {
   /**
    * Executes the mutation with the given arguments.
    */
@@ -84,17 +93,22 @@ export interface ExecuteOperationCallback<O extends Operation<any, any>> {
   reset(): void;
 }
 
-export interface LazyResult<O extends Operation<any, any>> {
+export interface LazyResult<O extends Operation<unknown, unknown>> {
   data: OperationResult<O>;
   errors: GraphQLError[];
 }
 
 type InnerLazyData<T> =
-  | ["pending", Promise<any>]
+  | ["pending", Promise<unknown>]
   | ["data", T]
-  | ["error", any];
+  | ["error", unknown];
 
-export function useMutation<M extends Mutation<any, any>>(
+/**
+ * Hook which manages an interactive mutation and its state.
+ *
+ * NOTE: Should never be called during the initial render of the component.
+ */
+export function useMutation<M extends Mutation<unknown, unknown>>(
   mutation: M,
 ): [ExecuteOperationCallback<M>, LazyResult<M> | undefined] {
   // TODO: Verify that it is a mutation?
@@ -103,7 +117,7 @@ export function useMutation<M extends Mutation<any, any>>(
 }
 
 // TODO: Is this not the same as useMutation? And should only execute in the browser?
-export function useLazyQuery<Q extends Query<any, any>>(
+export function useLazyQuery<Q extends Query<unknown, unknown>>(
   query: Q,
 ): [ExecuteOperationCallback<Q>, LazyResult<Q> | undefined] {
   // TODO: Verify that it is a query?
@@ -112,10 +126,13 @@ export function useLazyQuery<Q extends Query<any, any>>(
 }
 
 // Inner implementation
-function useLazy<O extends Operation<any, any>>(
+function useLazy<O extends Operation<unknown, unknown>>(
   mutation: O,
 ): [ExecuteOperationCallback<O>, LazyResult<O> | undefined] {
   const client = useClient();
+  // We can store our promise in this state since the component does not throw
+  // or trigger the mutation during the initial render. This means that our
+  // component state will be intact across a suspended promise.
   const [data, update] = useState<InnerLazyData<LazyResult<O>> | undefined>(
     undefined,
   );
@@ -132,16 +149,17 @@ function useLazy<O extends Operation<any, any>>(
       }
 
       const promise = client(mutation, ...args).then(
-        (result) =>
+        (result) => {
           update([
             "data",
             {
               data: result,
               errors: [],
             },
-          ]),
+          ]);
+        },
         (error) => {
-          if (error.name === "QueryError") {
+          if (typeof error === "object" && error?.name === "QueryError") {
             // We trust that the Query error data actually is our data
             update([
               "data",
@@ -179,7 +197,7 @@ function useLazy<O extends Operation<any, any>>(
 // TODO: useSharedQuery
 // TODO: Prefetching?
 
-function getQueryName(query: Query<any, any>): string {
+function getQueryName(query: Query<unknown, unknown>): string {
   if (!query.definitions[0] || !("name" in query.definitions[0])) {
     throw new Error("Query is missing name");
   }
@@ -188,8 +206,8 @@ function getQueryName(query: Query<any, any>): string {
 }
 
 function shallowEquals(
-  a: Record<string | number | symbol, any>,
-  b: Record<string | number | symbol, any>,
+  a: Record<string | number | symbol, unknown>,
+  b: Record<string | number | symbol, unknown>,
 ): boolean {
   return (
     Object.keys(a).length === Object.keys(b).length &&

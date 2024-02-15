@@ -40,7 +40,7 @@ export type OptionalParameterIfEmpty<T> = undefined extends T
  * A function which takes a GraphQL query along with its required variables,
  * if any, and returns a promise which resolves to the query result.
  */
-export type Client = <O extends Operation<any, any>>(
+export type Client = <O extends Operation<unknown, unknown>>(
   operation: O,
   // This construction makes the variables parameter optional if P is void or
   // EmptyObject.
@@ -188,10 +188,10 @@ export async function handleFetchResponse<R>(response: Response): Promise<R> {
     );
   }
 
-  let data;
+  let data: Record<string, unknown>;
 
   try {
-    data = JSON.parse(bodyText);
+    data = JSON.parse(bodyText) as Record<string, unknown>;
   } catch (error) {
     throw parseError(response, bodyText, error);
   }
@@ -362,7 +362,7 @@ export function createClient({
 
   // TODO: Do we make the consumer wrap the created Client in a cache if to
   // provide caching?
-  return <O extends Operation<any, any>>(
+  return <O extends Operation<unknown, unknown>>(
     operation: O,
     variables?: OperationParameters<O> | EmptyObject,
   ): Promise<OperationResult<O>> =>
