@@ -4,6 +4,7 @@ import { createClient } from "@awardit/graphql-ast-client";
 import { Provider, useMutation } from "@awardit/graphql-react-hooks";
 import { parse } from "graphql/language";
 
+// TODO: Generate types for graphql imports
 // import { addDogs, getDogs } from "./queries.graphql";
 
 const client = createClient({
@@ -22,6 +23,7 @@ const client = createClient({
   debounce: 0,
 });
 
+// TODO: Replace with graphql AST import with types
 const query = parse(`query addDog { foo }`) as Mutation<void, { foo: string }>;
 
 function Loader(): JSX.Element {

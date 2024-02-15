@@ -188,26 +188,28 @@ export async function handleFetchResponse<R>(response: Response): Promise<R> {
     );
   }
 
+  let data;
+
   try {
-    const data = JSON.parse(bodyText);
-
-    if (
-      ("errors" in data && Array.isArray(data.errors)) ||
-      ("data" in data && typeof data.data === "object")
-    ) {
-      // SAFETY: Since it is successful with data and/or errors we assume we
-      // have GraphQL-data in the correct format:
-      return data as R;
-    }
-
-    throw requestError(
-      response,
-      bodyText,
-      `Received unexpected JSON body content: ${bodyText}`,
-    );
+    data = JSON.parse(bodyText);
   } catch (error) {
     throw parseError(response, bodyText, error);
   }
+
+  if (
+    ("errors" in data && Array.isArray(data.errors)) ||
+    ("data" in data && typeof data.data === "object")
+  ) {
+    // SAFETY: Since it is successful with data and/or errors we assume we
+    // have GraphQL-data in the correct format:
+    return data as R;
+  }
+
+  throw requestError(
+    response,
+    bodyText,
+    `Received unexpected JSON body content: ${bodyText}`,
+  );
 }
 
 /**
