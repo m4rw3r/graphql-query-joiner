@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.build.json",
+  "exclude": [
+    /*
+    Ignore type-tests since they do contain code which on purpose produces
+    typechecking errors.
+    See https://github.com/tstyche/tstyche/issues/13
+    */
+    "**/*.test-d.ts"
+  ]
+}

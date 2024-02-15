@@ -14,7 +14,7 @@
     "build": "pnpm run build:d.ts && pnpm run build:js",
     "build:d.ts": "rollup -c",
     "build:js": "tsc --project tsconfig.build.json",
-    "check": "tsc --noEmit",
+    "check": "tsc --project tsconfig.check.json --noEmit",
     "clean": "rm -rf coverage dist",
     "prepack": "pnpm run clean && pnpm run build",
     "test": "pnpm run jest && pnpm run test:types",
