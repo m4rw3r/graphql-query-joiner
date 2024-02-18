@@ -32,6 +32,7 @@
     "react": "^18.2.0"
   },
   "dependencies": {
-    "@m4rw3r/react-pause-champ": "^0.1.4"
+    "@m4rw3r/react-pause-champ": "^0.1.4",
+    "dequal": "^2.0.3"
   }
 }

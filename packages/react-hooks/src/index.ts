@@ -17,6 +17,7 @@ import {
   useState,
 } from "react";
 import { useChamp } from "@m4rw3r/react-pause-champ";
+import { dequal } from "dequal";
 
 const QUERY_PREFIX = "query:";
 
@@ -62,15 +63,15 @@ export function useQuery<Q extends Query<unknown, unknown>>(
   );
   (value as UseQueryExtra).refetch = useCallback(() => {
     update(client(query, ...args));
-  }, [args[0]]);
+  }, [query, args[0]]);
 
-  if (
-    !shallowEquals(
-      oldParams.current as Record<string, unknown>,
-      (args[0] || {}) as Record<string, unknown>,
-    )
-  ) {
-    // Since we are suspending on this, we cannot update while being suspended.
+  if (!dequal(oldParams.current, args[0])) {
+    // Since we are suspending on this, we cannot update while being suspended
+    // which means we do not have to worry about accidentally overwriting a
+    // query-in-progress.
+
+    oldParams.current = args[0];
+
     // TODO: We want to throw immediately here, to avoid re-render, expose
     //       PauseChamp internals through separate package?
     //       Will this also work with react's scheduling?
