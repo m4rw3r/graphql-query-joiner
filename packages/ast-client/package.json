@@ -16,7 +16,7 @@
     "build:js": "tsc --project tsconfig.build.json",
     "check": "tsc --project tsconfig.check.json --noEmit",
     "clean": "rm -rf coverage dist",
-    "prepack": "pnpm run clean && pnpm run build",
+    "prepack": "pnpm run clean && pnpm run check && pnpm run test && pnpm run build",
     "test": "pnpm run jest && pnpm run test:types",
     "jest": "jest",
     "test:types": "tstyche",
