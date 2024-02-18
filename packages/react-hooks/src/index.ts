@@ -53,13 +53,15 @@ export function useQuery<Q extends Query<unknown, unknown>>(
   const oldParams = useRef(args[0]);
   const client = useClient();
   // TODO: Should we warn if we use the same query more than once?
-  // TODO: How can we indicate that we WANT partial responses? Ie. get the
-  //       response-data, and an error property with the error into our component?
   // TODO: Maybe use some kind of shared version of useChamp, where it allows
   //       multiple consumers, but only drops once all listeners are gone?
   const [value, update] = useChamp(
-    QUERY_PREFIX + name + ":" + JSON.stringify(args[0]),
-    () => client(query, ...args),
+    QUERY_PREFIX + name + ":" + JSON.stringify(args[0] ?? ""),
+    () => {
+      // TODO: How can we indicate that we WANT partial responses? Ie. get the
+      //       response-data, and an error property with the error into our component?
+      return client(query, ...args);
+    },
   );
   (value as UseQueryExtra).refetch = useCallback(() => {
     update(client(query, ...args));
@@ -99,6 +101,9 @@ export interface LazyResult<O extends Operation<unknown, unknown>> {
   errors: GraphQLError[];
 }
 
+/**
+ * @internal
+ */
 type InnerLazyData<T> =
   | ["pending", Promise<unknown>]
   | ["data", T]
@@ -112,28 +117,30 @@ type InnerLazyData<T> =
 export function useMutation<M extends Mutation<unknown, unknown>>(
   mutation: M,
 ): [ExecuteOperationCallback<M>, LazyResult<M> | undefined] {
-  // TODO: Verify that it is a mutation?
+  // TODO: Verify that it is a mutation? We have types already
 
-  return useLazy(mutation);
+  return useLazyOperation(mutation);
 }
 
-// TODO: Is this not the same as useMutation? And should only execute in the browser?
 export function useLazyQuery<Q extends Query<unknown, unknown>>(
   query: Q,
 ): [ExecuteOperationCallback<Q>, LazyResult<Q> | undefined] {
-  // TODO: Verify that it is a query?
+  // TODO: Verify that it is a query? We have types already
 
-  return useLazy(query);
+  return useLazyOperation(query);
 }
 
-// Inner implementation
-function useLazy<O extends Operation<unknown, unknown>>(
+/**
+ * Generic implementation of lazy operations.
+ */
+function useLazyOperation<O extends Operation<unknown, unknown>>(
   mutation: O,
 ): [ExecuteOperationCallback<O>, LazyResult<O> | undefined] {
   const client = useClient();
   // We can store our promise in this state since the component does not throw
   // or trigger the mutation during the initial render. This means that our
   // component state will be intact across a suspended promise.
+  // TODO: Test with <React.StrictMode/>
   const [data, update] = useState<InnerLazyData<LazyResult<O>> | undefined>(
     undefined,
   );
@@ -145,7 +152,7 @@ function useLazy<O extends Operation<unknown, unknown>>(
         typeof process.release.name !== "undefined"
       ) {
         throw new Error(
-          `useMutation() callback should only be called in a client environment`,
+          `Lazy GraphQL callbacks should only be called in a client environment`,
         );
       }
 
@@ -204,19 +211,6 @@ function getQueryName(query: Query<unknown, unknown>): string {
   }
 
   return query.definitions[0].name.value;
-}
-
-function shallowEquals(
-  a: Record<string | number | symbol, unknown>,
-  b: Record<string | number | symbol, unknown>,
-): boolean {
-  return (
-    Object.keys(a).length === Object.keys(b).length &&
-    Object.keys(a).every(
-      (key) =>
-        Object.prototype.hasOwnProperty.call(b, key) && a[key] === b[key],
-    )
-  );
 }
 
 // TODO: Reuse?
