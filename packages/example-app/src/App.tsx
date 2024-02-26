@@ -1,5 +1,5 @@
-import type { Mutation } from "@awardit/graphql-ast-client";
-import { Suspense, createElement } from "react";
+import type { Mutation, RunOperation } from "@awardit/graphql-ast-client";
+import { Suspense, createElement, useTransition, useState } from "react";
 import { createClient } from "@awardit/graphql-ast-client";
 import { Provider, useMutation } from "@awardit/graphql-react-hooks";
 import { parse } from "graphql/language";
@@ -19,30 +19,35 @@ const client = createClient({
         });
       }, 2000);
     });
-  }) as any,
+  }) as RunOperation,
   debounce: 0,
 });
 
 // TODO: Replace with graphql AST import with types
-const query = parse(`query addDog { foo }`) as Mutation<void, { foo: string }>;
+const query = parse(`mutation addDog { foo }`) as Mutation<
+  void,
+  { foo: string }
+>;
 
 function Loader(): JSX.Element {
   return <div>Loading...</div>;
 }
 
-function Dogs(): JSX.Element {
-  console.log("Rendering Dogs");
-
+function Dogs({
+  startTransition,
+}: {
+  startTransition: (cb: () => void) => void;
+}): JSX.Element {
   const [runMutation, result] = useMutation(query);
-
-  console.log("Actual Rendering");
+  // const result = useQuery(query);
 
   return (
     <div>
       <button
         onClick={() => {
-          console.log("On Click");
-          runMutation();
+          startTransition(() => {
+            runMutation();
+          });
         }}
       >
         Add Dog
@@ -80,12 +85,23 @@ function FluffyDogs(): JSX.Element {
 */
 
 export function App(): JSX.Element {
-  console.log("App");
+  const [isTransitioning, startTransition] = useTransition();
+  const [show, setShow] = useState(false);
+
   return (
-    <Provider value={client}>
-      <Suspense fallback={<Loader />}>
-        <Dogs />
-      </Suspense>
-    </Provider>
+    <div style={isTransitioning ? { opacity: 0.5 } : {}}>
+      <button
+        onClick={() => {
+          setShow(true);
+        }}
+      >
+        Show
+      </button>
+      <Provider value={client}>
+        <Suspense fallback={<Loader />}>
+          {show ? <Dogs startTransition={startTransition} /> : undefined}
+        </Suspense>
+      </Provider>
+    </div>
   );
 }

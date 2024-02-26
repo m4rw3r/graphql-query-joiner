@@ -16,7 +16,6 @@ function createViteDevHtmlTransform(path: string) {
 
   return new Transform({
     transform(chunk: string, _encoding: string, callback: Callback) {
-      console.log("Transforming");
       if (!transformed) {
         // The first chunk should contain the full <head>
         transformed = true;
@@ -29,8 +28,12 @@ function createViteDevHtmlTransform(path: string) {
 
         // The path is used for some relative URLs/imports
         viteDevServer.transformIndexHtml(path, chunk.toString()).then(
-          (data) => callback(null, data),
-          (error: Error) => callback(error, null),
+          (data) => {
+            callback(null, data);
+          },
+          (error: Error) => {
+            callback(error, null);
+          },
         );
       } else {
         callback(null, chunk);
