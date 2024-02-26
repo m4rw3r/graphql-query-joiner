@@ -9,6 +9,12 @@ export type {
   Query,
 } from "./query";
 export type {
+  MissingVariableError,
+  ParseError,
+  QueryError,
+  RequestError,
+} from "./error";
+export type {
   Client,
   CreateClientOptions,
   OptionalParameterIfEmpty,
