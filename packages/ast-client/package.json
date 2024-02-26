@@ -26,6 +26,6 @@
     "graphql": "^16.8.1"
   },
   "devDependencies": {
-    "tstyche": "1.0.0-rc"
+    "tstyche": "1.0.0"
   }
 }

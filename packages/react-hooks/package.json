@@ -22,7 +22,7 @@
     "@awardit/graphql-ast-client": "workspace:1.0.0-rc1",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^14.2.1",
-    "@types/react": "^18.2.55",
+    "@types/react": "^18.2.58",
     "@types/react-dom": "^18.2.19",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
@@ -32,7 +32,7 @@
     "react": "^18.2.0"
   },
   "dependencies": {
-    "@m4rw3r/react-pause-champ": "^0.1.4",
+    "@m4rw3r/react-pause-champ": "^0.2.5",
     "dequal": "^2.0.3"
   }
 }
