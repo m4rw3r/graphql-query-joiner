@@ -19,7 +19,7 @@
     "test:watch": "jest --watch"
   },
   "devDependencies": {
-    "@awardit/graphql-ast-client": "workspace:1.0.0-rc1",
+    "@awardit/graphql-ast-client": "workspace:^",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^14.2.1",
     "@types/react": "^18.2.58",
