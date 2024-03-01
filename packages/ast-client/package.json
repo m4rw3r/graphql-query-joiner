@@ -26,9 +26,10 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@graphql-typed-document-node/core": "^3.2.0",
     "graphql": "^16.8.1"
   },
   "devDependencies": {
-    "tstyche": "1.0.0"
+    "tstyche": "1.1.0"
   }
 }

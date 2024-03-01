@@ -1,14 +1,13 @@
 import type {
   Client,
   GraphQLError,
-  Mutation,
-  Operation,
-  OperationParameters,
-  OperationResult,
   OptionalParameterIfEmpty,
-  Query,
   QueryError,
+  ResultOf,
+  TypedDocumentNode,
+  VariablesOf,
 } from "@awardit/graphql-ast-client";
+
 import {
   createContext,
   useCallback,
@@ -19,20 +18,20 @@ import {
 import { createSharedState } from "@m4rw3r/react-pause-champ";
 
 export interface ExecuteOperationCallback<
-  O extends Operation<unknown, unknown>,
+  O extends TypedDocumentNode<any, any>,
 > {
   /**
    * Executes the mutation with the given arguments.
    */
-  (...args: OptionalParameterIfEmpty<OperationParameters<O>>): void;
+  (...args: OptionalParameterIfEmpty<VariablesOf<O>>): void;
   /**
    * Resets the contents of the mutation result.
    */
   reset(): void;
 }
 
-export interface FallibleResult<O extends Operation<unknown, unknown>> {
-  data: OperationResult<O>;
+export interface FallibleResult<O extends TypedDocumentNode<any, any>> {
+  data: ResultOf<O>;
   errors: GraphQLError[];
 }
 
@@ -69,16 +68,16 @@ export function useClient(): Client {
  *
  * NOTE: Query-names should be unique for each query
  */
-export function useQuery<Q extends Query<unknown, unknown>>(
+export function useQuery<Q extends TypedDocumentNode<any, any>>(
   query: Q,
-  ...args: OptionalParameterIfEmpty<OperationParameters<Q>>
-): OperationResult<Q> & UseQueryExtra {
+  ...args: OptionalParameterIfEmpty<VariablesOf<Q>>
+): ResultOf<Q> & UseQueryExtra {
   const client = useClient();
   // TODO: How to specify the name as a parameter?
   const name = getQueryName(query);
   const id = QUERY_PREFIX + name + ":" + JSON.stringify(args[0] ?? "");
 
-  const [value, update] = createSharedState<OperationResult<Q>>(id)(() =>
+  const [value, update] = createSharedState<ResultOf<Q>>(id)(() =>
     client(query, ...args),
   );
   const refetch = useCallback(() => {
@@ -87,12 +86,14 @@ export function useQuery<Q extends Query<unknown, unknown>>(
 
   (value as UseQueryExtra).refetch = refetch;
 
-  return value as OperationResult<Q> & UseQueryExtra;
+  // By default we have any here, but should never happen in practice provided Q is typed
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return value as ResultOf<Q> & UseQueryExtra;
 }
 
-export function useFallibleQuery<Q extends Query<unknown, unknown>>(
+export function useFallibleQuery<Q extends TypedDocumentNode<any, any>>(
   query: Q,
-  ...args: OptionalParameterIfEmpty<OperationParameters<Q>>
+  ...args: OptionalParameterIfEmpty<VariablesOf<Q>>
 ): FallibleResult<Q> & UseQueryExtra {
   // TODO: Refactor
 
@@ -114,28 +115,13 @@ export function useFallibleQuery<Q extends Query<unknown, unknown>>(
 }
 
 /**
- * Hook which manages an interactive mutation and its state.
+ * Hook which manages an interactive query or mutation and its state.
  *
  * NOTE: Should never be called during the initial render of the component.
- */
-export function useMutation<M extends Mutation<unknown, unknown>>(
-  mutation: M,
-): [ExecuteOperationCallback<M>, FallibleResult<M> | undefined] {
-  return useLazyOperation(mutation);
-}
-
-export function useLazyQuery<Q extends Query<unknown, unknown>>(
-  query: Q,
-): [ExecuteOperationCallback<Q>, FallibleResult<Q> | undefined] {
-  return useLazyOperation(query);
-}
-
-/**
- * Generic implementation of lazy operations.
  *
  * @internal
  */
-function useLazyOperation<O extends Operation<unknown, unknown>>(
+export function useLazyOperation<O extends TypedDocumentNode<any, any>>(
   mutation: O,
 ): [ExecuteOperationCallback<O>, FallibleResult<O> | undefined] {
   const client = useClient();
@@ -148,7 +134,7 @@ function useLazyOperation<O extends Operation<unknown, unknown>>(
     undefined,
   );
   const runMutation = useMemo<ExecuteOperationCallback<O>>(() => {
-    const fn = (...args: OptionalParameterIfEmpty<OperationParameters<O>>) => {
+    const fn = (...args: OptionalParameterIfEmpty<VariablesOf<O>>) => {
       // Should only be updated on client
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (typeof process?.release?.name !== "undefined") {
@@ -186,10 +172,10 @@ function useLazyOperation<O extends Operation<unknown, unknown>>(
   return [runMutation, data?.[1]];
 }
 
-function runFallibleOperation<O extends Operation<unknown, unknown>>(
+function runFallibleOperation<O extends TypedDocumentNode<any, any>>(
   client: Client,
   operation: O,
-  ...args: OptionalParameterIfEmpty<OperationParameters<O>>
+  ...args: OptionalParameterIfEmpty<VariablesOf<O>>
 ): Promise<FallibleResult<O>> {
   return client(operation, ...args).then(
     (data) => ({ data, errors: [] }),
@@ -198,7 +184,7 @@ function runFallibleOperation<O extends Operation<unknown, unknown>>(
       if (typeof error === "object" && error?.name === "QueryError") {
         // We trust that the Query error data actually is our data
         return {
-          data: (error as QueryError).queryData as OperationResult<O>,
+          data: (error as QueryError).queryData as ResultOf<O>,
           errors: (error as QueryError).errors,
         };
       } else {
@@ -208,7 +194,7 @@ function runFallibleOperation<O extends Operation<unknown, unknown>>(
   );
 }
 
-function getQueryName(query: Query<unknown, unknown>): string {
+function getQueryName(query: TypedDocumentNode<any, any>): string {
   if (!query.definitions[0] || !("name" in query.definitions[0])) {
     throw new Error("Query is missing name");
   }

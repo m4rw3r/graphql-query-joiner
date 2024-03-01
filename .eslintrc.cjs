@@ -15,6 +15,14 @@ module.exports = {
   root: true,
   overrides: [
     {
+      files: ["**/*.ts", "**/*.tsx"],
+      rules: {
+        // We need a lot of any for TypedDocumentNode to avoid having to fully
+        // specify variables and result types all the time:
+        "@typescript-eslint/no-explicit-any": "off",
+      },
+    },
+    {
       files: ["**/*.test.ts", "**/*.test.tsx"],
       rules: {
         // act() does return a promise

@@ -2,16 +2,15 @@
 //
 // See https://tstyche.org/
 
-import type {
-  EmptyObject,
-  Mutation,
-  Operation,
-  OperationParameters,
-  OperationResult,
-  Query,
-} from "./query";
+import type { EmptyObject, Mutation, Query } from "./query";
 import type { Client } from "./client";
 import type { DocumentNode } from "graphql/language";
+import type {
+  ResultOf,
+  TypedDocumentNode,
+  VariablesOf,
+} from "@graphql-typed-document-node/core";
+
 import { describe, expect, test } from "tstyche";
 
 interface MyQueryParams {
@@ -24,10 +23,10 @@ interface MyQueryResult {
 }
 
 // Dummy client
-const runQuery: Client = <O extends Operation<any, any>>(
+const runQuery: Client = <O extends TypedDocumentNode<any, any>>(
   _query: O,
-  _params?: OperationParameters<O> | EmptyObject,
-): Promise<OperationResult<O>> => ({}) as Promise<OperationResult<O>>;
+  _params?: VariablesOf<O> | EmptyObject,
+): Promise<ResultOf<O>> => ({}) as Promise<ResultOf<O>>;
 
 const myQuery = {} as Query<MyQueryParams, MyQueryResult>;
 const voidQuery = {} as Query<void, MyQueryResult>;
@@ -118,26 +117,22 @@ describe("Client", () => {
   });
 });
 
-describe("OperationResult", () => {
-  test("OperationResult should resolve to the type of the result", () => {
-    expect<OperationResult<typeof myQuery>>().type.toEqual<MyQueryResult>;
-    expect<OperationResult<typeof voidQuery>>().type.toEqual<MyQueryResult>;
-    expect<OperationResult<typeof undefinedQuery>>().type
-      .toEqual<MyQueryResult>;
-    expect<OperationResult<typeof emptyQuery>>().type.toEqual<MyQueryResult>;
-    expect<OperationResult<typeof emptyRecordQuery>>().type
-      .toEqual<MyQueryResult>;
+describe("ResultOf", () => {
+  test("ResultOf should resolve to the type of the result", () => {
+    expect<ResultOf<typeof myQuery>>().type.toEqual<MyQueryResult>;
+    expect<ResultOf<typeof voidQuery>>().type.toEqual<MyQueryResult>;
+    expect<ResultOf<typeof undefinedQuery>>().type.toEqual<MyQueryResult>;
+    expect<ResultOf<typeof emptyQuery>>().type.toEqual<MyQueryResult>;
+    expect<ResultOf<typeof emptyRecordQuery>>().type.toEqual<MyQueryResult>;
   });
 });
 
-describe("OperationParameters", () => {
-  test("OperationParameters should resolve to the type of the parameters", () => {
-    expect<OperationParameters<typeof myQuery>>().type.toEqual<MyQueryParams>;
-    expect<OperationParameters<typeof voidQuery>>().type.toEqual<void>;
-    expect<OperationParameters<typeof undefinedQuery>>().type
-      .toEqual<undefined>;
-    expect<OperationParameters<typeof emptyQuery>>().type.toEqual<EmptyObject>;
-    expect<OperationParameters<typeof emptyRecordQuery>>().type
-      .toEqual<EmptyObject>;
+describe("VariablesOf", () => {
+  test("VariablesOf should resolve to the type of the parameters", () => {
+    expect<VariablesOf<typeof myQuery>>().type.toEqual<MyQueryParams>;
+    expect<VariablesOf<typeof voidQuery>>().type.toEqual<void>;
+    expect<VariablesOf<typeof undefinedQuery>>().type.toEqual<undefined>;
+    expect<VariablesOf<typeof emptyQuery>>().type.toEqual<EmptyObject>;
+    expect<VariablesOf<typeof emptyRecordQuery>>().type.toEqual<EmptyObject>;
   });
 });

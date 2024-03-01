@@ -21,5 +21,11 @@ export type {
   PreparedOperation,
   RunOperation,
 } from "./client";
+// Reexports
+export type {
+  ResultOf,
+  TypedDocumentNode,
+  VariablesOf,
+} from "@graphql-typed-document-node/core";
 
 export { createClient, handleFetchResponse } from "./client";

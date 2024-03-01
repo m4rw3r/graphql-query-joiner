@@ -2,12 +2,14 @@ import type {
   EmptyObject,
   GraphQLResponse,
   GraphQLError,
-  Operation,
-  OperationParameters,
-  OperationResult,
   RenameMap,
 } from "./query";
 import type { QueryBundle } from "./bundle";
+import type {
+  ResultOf,
+  TypedDocumentNode,
+  VariablesOf,
+} from "@graphql-typed-document-node/core";
 
 import { print } from "graphql/language";
 import { createBundle, createDocument, mergeBundle } from "./bundle";
@@ -40,12 +42,12 @@ export type OptionalParameterIfEmpty<T> = undefined extends T
  * A function which takes a GraphQL query along with its required variables,
  * if any, and returns a promise which resolves to the query result.
  */
-export type Client = <O extends Operation<unknown, unknown>>(
+export type Client = <O extends TypedDocumentNode<any, any>>(
   operation: O,
   // This construction makes the variables parameter optional if P is void or
   // EmptyObject.
-  ...args: OptionalParameterIfEmpty<OperationParameters<O>>
-) => Promise<OperationResult<O>>;
+  ...args: OptionalParameterIfEmpty<VariablesOf<O>>
+) => Promise<ResultOf<O>>;
 
 /**
  * Options for createClient().
@@ -75,6 +77,7 @@ export type RunOperation = (
  * An operation which has been serialized and grouped with its variables.
  */
 export interface PreparedOperation {
+  // TODO: Maybe expose it as a AST instead?
   /**
    * Printed operation.
    */
@@ -362,10 +365,10 @@ export function createClient({
 
   // TODO: Do we make the consumer wrap the created Client in a cache if to
   // provide caching?
-  return <O extends Operation<unknown, unknown>>(
+  return <O extends TypedDocumentNode<any, any>>(
     operation: O,
-    variables?: OperationParameters<O> | EmptyObject,
-  ): Promise<OperationResult<O>> =>
+    variables?: VariablesOf<O> | EmptyObject,
+  ): Promise<ResultOf<O>> =>
     new Promise((resolve, reject): void => {
       enqueue(pending, createBundle(operation), variables, resolve, reject);
 
