@@ -1,7 +1,7 @@
 import type { Mutation, RunOperation } from "@awardit/graphql-ast-client";
 import { Suspense, createElement, useTransition, useState } from "react";
 import { createClient } from "@awardit/graphql-ast-client";
-import { Provider, useMutation } from "@awardit/graphql-react-hooks";
+import { Provider, useLazyOperation } from "@awardit/graphql-react-hooks";
 import { parse } from "graphql/language";
 
 // TODO: Generate types for graphql imports
@@ -38,7 +38,7 @@ function Dogs({
 }: {
   startTransition: (cb: () => void) => void;
 }): JSX.Element {
-  const [runMutation, result] = useMutation(query);
+  const [runMutation, result] = useLazyOperation(query);
   // const result = useQuery(query);
 
   return (
