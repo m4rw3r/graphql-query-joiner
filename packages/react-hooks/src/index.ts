@@ -30,8 +30,8 @@ export interface ExecuteOperationCallback<
   reset(): void;
 }
 
-export interface FallibleResult<O extends TypedDocumentNode<any, any>> {
-  data: ResultOf<O>;
+export interface FallibleResult<T> {
+  data: T;
   errors: GraphQLError[];
 }
 
@@ -84,9 +84,12 @@ export function useQuery<Q extends TypedDocumentNode<any, any>>(
     update(client(query, ...args));
   }, [update, query, args[0]]);
 
+  // SAFETY: Value is always an object in a successful GraphQL response
   (value as UseQueryExtra).refetch = refetch;
 
-  // By default we have any here, but should never happen in practice provided Q is typed
+  // SAFETY: By default we have any here from TypedDocumentNode<any, _>, but
+  // should never happen in practice provided Q is fully typed
+  //
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return value as ResultOf<Q> & UseQueryExtra;
 }
@@ -94,7 +97,7 @@ export function useQuery<Q extends TypedDocumentNode<any, any>>(
 export function useFallibleQuery<Q extends TypedDocumentNode<any, any>>(
   query: Q,
   ...args: OptionalParameterIfEmpty<VariablesOf<Q>>
-): FallibleResult<Q> & UseQueryExtra {
+): FallibleResult<ResultOf<Q>> & UseQueryExtra {
   // TODO: Refactor
 
   const client = useClient();
@@ -102,37 +105,35 @@ export function useFallibleQuery<Q extends TypedDocumentNode<any, any>>(
   const name = getQueryName(query);
   const id = FALLIBLE_QUERY_PREFIX + name + ":" + JSON.stringify(args[0] ?? "");
 
-  const [value, update] = createSharedState<FallibleResult<Q>>(id)(() =>
-    runFallibleOperation(client, query, ...args),
+  const [value, update] = createSharedState<FallibleResult<ResultOf<Q>>>(id)(
+    () => makeFallible(client(query, ...args)),
   );
   const refetch = useCallback(() => {
-    update(runFallibleOperation(client, query, ...args));
+    update(makeFallible(client(query, ...args)));
   }, [update, query, args[0]]);
 
   (value as unknown as UseQueryExtra).refetch = refetch;
 
-  return value as FallibleResult<Q> & UseQueryExtra;
+  return value as FallibleResult<ResultOf<Q>> & UseQueryExtra;
 }
 
 /**
  * Hook which manages an interactive query or mutation and its state.
  *
  * NOTE: Should never be called during the initial render of the component.
- *
- * @internal
  */
 export function useLazyOperation<O extends TypedDocumentNode<any, any>>(
   mutation: O,
-): [ExecuteOperationCallback<O>, FallibleResult<O> | undefined] {
+): [ExecuteOperationCallback<O>, FallibleResult<ResultOf<O>> | undefined] {
   const client = useClient();
   // We can store our promise in this state since the component does not throw
   // or trigger the mutation during the initial render. This means that our
   // component state will be intact across a suspended promise.
   // TODO: Test with <React.StrictMode/>
   // TODO: Variant which throws on query errors as well?
-  const [data, update] = useState<InnerLazyData<FallibleResult<O>> | undefined>(
-    undefined,
-  );
+  const [data, update] = useState<
+    InnerLazyData<FallibleResult<ResultOf<O>>> | undefined
+  >(undefined);
   const runMutation = useMemo<ExecuteOperationCallback<O>>(() => {
     const fn = (...args: OptionalParameterIfEmpty<VariablesOf<O>>) => {
       // Should only be updated on client
@@ -144,7 +145,7 @@ export function useLazyOperation<O extends TypedDocumentNode<any, any>>(
       }
 
       // TODO: Replace by an Entry?
-      const promise = runFallibleOperation(client, mutation, ...args).then(
+      const promise = makeFallible(client(mutation, ...args)).then(
         (result) => {
           update(["data", result]);
         },
@@ -172,19 +173,15 @@ export function useLazyOperation<O extends TypedDocumentNode<any, any>>(
   return [runMutation, data?.[1]];
 }
 
-function runFallibleOperation<O extends TypedDocumentNode<any, any>>(
-  client: Client,
-  operation: O,
-  ...args: OptionalParameterIfEmpty<VariablesOf<O>>
-): Promise<FallibleResult<O>> {
-  return client(operation, ...args).then(
+function makeFallible<T>(promise: Promise<T>): Promise<FallibleResult<T>> {
+  return promise.then(
     (data) => ({ data, errors: [] }),
     (error) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (typeof error === "object" && error?.name === "QueryError") {
-        // We trust that the Query error data actually is our data
+        // SAFETY: We trust that the Query error data actually is our data
         return {
-          data: (error as QueryError).queryData as ResultOf<O>,
+          data: (error as QueryError).queryData as T,
           errors: (error as QueryError).errors,
         };
       } else {
