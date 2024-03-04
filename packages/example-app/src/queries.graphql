@@ -1,5 +1,11 @@
-query getDogs {
-  dogs {
-    names
+query getDogs($type: DogType) {
+  dogs(typeOfDog: $type) {
+    name
+  }
+}
+
+mutation addDog($name: String!) {
+  addDog(name: $name) {
+    name
   }
 }

@@ -1,0 +1,15 @@
+enum DogType {
+  GOOD
+}
+
+type Query {
+  dogs(typeOfDog: DogType): [Dog]
+}
+
+type Mutation {
+  addDog(name: String!): Dog
+}
+
+type Dog {
+  name: String!
+}

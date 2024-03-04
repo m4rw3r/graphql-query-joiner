@@ -1,11 +1,15 @@
-import type { Mutation, RunOperation } from "@awardit/graphql-ast-client";
+import type { RunOperation } from "@awardit/graphql-ast-client";
+
 import { Suspense, createElement, useTransition, useState } from "react";
 import { createClient } from "@awardit/graphql-ast-client";
-import { Provider, useLazyOperation } from "@awardit/graphql-react-hooks";
-import { parse } from "graphql/language";
+import {
+  Provider,
+  useLazyOperation,
+  useQuery,
+} from "@awardit/react-graphql-hooks";
 
 // TODO: Generate types for graphql imports
-// import { addDogs, getDogs } from "./queries.graphql";
+import { addDog, getDogs } from "./queries.graphql";
 
 const client = createClient({
   runOperation: (() => {
@@ -23,12 +27,6 @@ const client = createClient({
   debounce: 0,
 });
 
-// TODO: Replace with graphql AST import with types
-const query = parse(`mutation addDog { foo }`) as Mutation<
-  void,
-  { foo: string }
->;
-
 function Loader(): JSX.Element {
   return <div>Loading...</div>;
 }
@@ -38,15 +36,15 @@ function Dogs({
 }: {
   startTransition: (cb: () => void) => void;
 }): JSX.Element {
-  const [runMutation, result] = useLazyOperation(query);
-  // const result = useQuery(query);
+  const data = useQuery(getDogs, { type: "GOOD" });
+  const [runMutation, result] = useLazyOperation(addDog);
 
   return (
     <div>
       <button
         onClick={() => {
           startTransition(() => {
-            runMutation();
+            runMutation({ name: "" });
           });
         }}
       >
@@ -55,34 +53,12 @@ function Dogs({
       <ol>
         <li>Dog {JSON.stringify(result)}</li>
       </ol>
+      <ul>
+        {data.dogs?.map((dog) => (dog ? <li>{dog.name}</li> : undefined))}
+      </ul>
     </div>
   );
 }
-
-/*
-function Dogs({ onDogSelected }): JSX.Element {
-  const data = useQuery(getDogs, { typeOfDog: "good" });
-
-  return (
-    <select name="dog" onChange={onDogSelected}>
-      ...
-    </select>
-  );
-}
-
-function FluffyDogs(): JSX.Element {
-  const data = useQuery(getDogs, { typeOfDog: "fluffy" });
-  const [add, { data, error }] = useMutation(addDogs);
-
-  return (
-    <div>
-    <button onClick={() => add({ name: "Henrik" })}>Add</buddon>
-    <ol>
-    </ol>
-    </div>
-  );
-}
-*/
 
 export function App(): JSX.Element {
   const [isTransitioning, startTransition] = useTransition();

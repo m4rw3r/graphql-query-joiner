@@ -2,6 +2,7 @@ import react from "@vitejs/plugin-react";
 import { vavite } from "vavite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig } from "vite";
+import codegen from "vite-plugin-graphql-codegen";
 
 export default defineConfig({
   buildSteps: [
@@ -25,10 +26,21 @@ export default defineConfig({
       },
     },
   ],
+  resolve: {
+    alias: [
+      {
+        find: /^(.*)\.graphql$/,
+        replacement: "$1.graphql.ts",
+      },
+    ],
+  },
   plugins: [
     // To be able to load the manifest path
     tsconfigPaths(),
     react(),
+    codegen({
+      throwOnStart: true,
+    }),
     vavite({
       // Production:
       serverEntry: "src/index.server.ts",
