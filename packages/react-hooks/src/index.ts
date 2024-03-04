@@ -74,8 +74,8 @@ export function useQuery<Q extends TypedDocumentNode<any, any>>(
 ): ResultOf<Q> & UseQueryExtra {
   const client = useClient();
   // TODO: How to specify the name as a parameter?
-  const name = getQueryName(query);
-  const id = QUERY_PREFIX + name + ":" + JSON.stringify(args[0] ?? "");
+  const id =
+    QUERY_PREFIX + getQueryName(query) + ":" + JSON.stringify(args[0] ?? "");
 
   const [value, update] = createSharedState<ResultOf<Q>>(id)(() =>
     client(query, ...args),
@@ -102,8 +102,11 @@ export function useFallibleQuery<Q extends TypedDocumentNode<any, any>>(
 
   const client = useClient();
   // TODO: How to specify the name as a parameter?
-  const name = getQueryName(query);
-  const id = FALLIBLE_QUERY_PREFIX + name + ":" + JSON.stringify(args[0] ?? "");
+  const id =
+    FALLIBLE_QUERY_PREFIX +
+    getQueryName(query) +
+    ":" +
+    JSON.stringify(args[0] ?? "");
 
   const [value, update] = createSharedState<FallibleResult<ResultOf<Q>>>(id)(
     () => makeFallible(client(query, ...args)),
@@ -123,18 +126,18 @@ export function useFallibleQuery<Q extends TypedDocumentNode<any, any>>(
  * NOTE: Should never be called during the initial render of the component.
  */
 export function useLazyOperation<O extends TypedDocumentNode<any, any>>(
-  mutation: O,
+  operation: O,
 ): [ExecuteOperationCallback<O>, FallibleResult<ResultOf<O>> | undefined] {
   const client = useClient();
   // We can store our promise in this state since the component does not throw
-  // or trigger the mutation during the initial render. This means that our
+  // or trigger the operation during the initial render. This means that our
   // component state will be intact across a suspended promise.
   // TODO: Test with <React.StrictMode/>
   // TODO: Variant which throws on query errors as well?
   const [data, update] = useState<
     InnerLazyData<FallibleResult<ResultOf<O>>> | undefined
   >(undefined);
-  const runMutation = useMemo<ExecuteOperationCallback<O>>(() => {
+  const runOperation = useMemo<ExecuteOperationCallback<O>>(() => {
     const fn = (...args: OptionalParameterIfEmpty<VariablesOf<O>>) => {
       // Should only be updated on client
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -145,7 +148,7 @@ export function useLazyOperation<O extends TypedDocumentNode<any, any>>(
       }
 
       // TODO: Replace by an Entry?
-      const promise = makeFallible(client(mutation, ...args)).then(
+      const promise = makeFallible(client(operation, ...args)).then(
         (result) => {
           update(["data", result]);
         },
@@ -163,14 +166,14 @@ export function useLazyOperation<O extends TypedDocumentNode<any, any>>(
     };
 
     return fn;
-  }, [client, mutation, update]);
+  }, [client, operation, update]);
 
   if (data && data[0] !== "data") {
     // Not data, so either promise or error
     throw data[1];
   }
 
-  return [runMutation, data?.[1]];
+  return [runOperation, data?.[1]];
 }
 
 function makeFallible<T>(promise: Promise<T>): Promise<FallibleResult<T>> {
