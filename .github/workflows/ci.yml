@@ -58,6 +58,8 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install
+      - name: Types
+        run: pnpm -r build:d.ts
       - name: Lint
         run: pnpm run lint
       - name: Check formatting
