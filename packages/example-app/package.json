@@ -22,7 +22,7 @@
     "@awardit/graphql-ast-client": "workspace:^",
     "@awardit/react-graphql-hooks": "workspace:^",
     "@m4rw3r/react-pause-champ": "^0.2.5",
-    "express": "^4.18.3",
+    "express": "^4.19.2",
     "graphql": "^16.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
