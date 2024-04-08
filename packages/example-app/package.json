@@ -38,7 +38,7 @@
     "@types/react-dom": "^18.2.24",
     "@vitejs/plugin-react": "^4.2.1",
     "vavite": "^4.1.1",
-    "vite": "^5.1.7",
+    "vite": "^5.2.8",
     "vite-plugin-graphql-codegen": "^3.3.6",
     "vite-tsconfig-paths": "^4.3.1"
   }
