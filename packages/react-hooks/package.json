@@ -25,9 +25,9 @@
   "devDependencies": {
     "@awardit/graphql-ast-client": "workspace:^",
     "@testing-library/jest-dom": "^6.4.2",
-    "@testing-library/react": "^14.2.1",
-    "@types/react": "^18.2.73",
-    "@types/react-dom": "^18.2.24",
+    "@testing-library/react": "^15.0.2",
+    "@types/react": "^18.2.79",
+    "@types/react-dom": "^18.2.25",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
