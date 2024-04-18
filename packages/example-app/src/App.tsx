@@ -37,7 +37,7 @@ function Dogs({
   startTransition: (cb: () => void) => void;
 }): JSX.Element {
   const data = useQuery(getDogs, { type: "GOOD" });
-  const [runMutation, result] = useLazyOperation(addDog);
+  const [result, runMutation] = useLazyOperation(addDog);
 
   return (
     <div>

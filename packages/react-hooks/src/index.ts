@@ -208,7 +208,7 @@ export function useFallibleQuery<Q extends TypedDocumentNode<any, any>>(
  */
 export function useLazyOperation<O extends TypedDocumentNode<any, any>>(
   operation: O,
-): [ExecuteOperationCallback<O>, FallibleResult<ResultOf<O>> | undefined] {
+): [FallibleResult<ResultOf<O>> | undefined, ExecuteOperationCallback<O>] {
   const client = useClient();
   // We can store our promise in this state since the component does not throw
   // or trigger the operation during the initial render. This means that our
@@ -254,7 +254,7 @@ export function useLazyOperation<O extends TypedDocumentNode<any, any>>(
     throw data[1];
   }
 
-  return [runOperation, data?.[1]];
+  return [data?.[1], runOperation];
 }
 
 /**
