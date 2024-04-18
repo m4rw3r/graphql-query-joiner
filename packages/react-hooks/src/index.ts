@@ -197,7 +197,11 @@ export function useFallibleQuery<Q extends TypedDocumentNode<any, any>>(
 /**
  * Hook which manages an interactive query or mutation and its state.
  *
- * NOTE: Should never be called during the initial render of the component.
+ * Initially the value will be undefined until the returned callback is called,
+ * then the component will suspend during the operation until the operation has
+ * completed.
+ *
+ * NOTE: Should never be called during the render of the component.
  *
  * @public
  * @typeParam O - Typed GraphQL operation
