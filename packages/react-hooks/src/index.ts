@@ -221,14 +221,15 @@ export function useLazyOperation<O extends TypedDocumentNode<any, any>>(
   const runOperation = useMemo<ExecuteOperationCallback<O>>(() => {
     const fn = (...args: OptionalParameterIfEmpty<VariablesOf<O>>) => {
       // Should only be updated on client
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      if (typeof process?.release?.name !== "undefined") {
+      if (typeof window === "undefined") {
         throw new Error(
           `Lazy GraphQL callbacks should only be called in a client environment`,
         );
       }
 
       // TODO: Replace by an Entry?
+      // TODO: Should we just replace the internal value instead to not
+      // trigger double updates? ie. entry
       const promise = makeFallible(client(operation, ...args)).then(
         (result) => {
           update(["data", result]);
