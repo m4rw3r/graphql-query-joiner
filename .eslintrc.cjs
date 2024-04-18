@@ -20,6 +20,10 @@ module.exports = {
         // We need a lot of any for TypedDocumentNode to avoid having to fully
         // specify variables and result types all the time:
         "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/restrict-template-expressions": [
+          "error",
+          { allowNumber: true },
+        ],
       },
     },
     {
