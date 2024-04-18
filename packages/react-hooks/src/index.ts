@@ -7,6 +7,7 @@ import type {
   TypedDocumentNode,
   VariablesOf,
 } from "@awardit/graphql-ast-client";
+import type { Entry } from "@m4rw3r/react-pause-champ/internal";
 
 import {
   createContext,
@@ -16,6 +17,7 @@ import {
   useState,
 } from "react";
 import { createSharedState } from "@m4rw3r/react-pause-champ";
+import { createEntry, unwrapEntry } from "@m4rw3r/react-pause-champ/internal";
 
 /**
  * Callback which executes a lazy operation.
@@ -67,14 +69,6 @@ interface UseQueryExtra {
    */
   refetch: () => void;
 }
-
-/**
- * @internal
- */
-type InnerLazyData<T> =
-  | ["pending", Promise<unknown>]
-  | ["data", T]
-  | ["error", unknown];
 
 /**
  * @internal
@@ -216,7 +210,7 @@ export function useLazyOperation<O extends TypedDocumentNode<any, any>>(
   // TODO: Test with <React.StrictMode/>
   // TODO: Variant which throws on query errors as well?
   const [data, update] = useState<
-    InnerLazyData<FallibleResult<ResultOf<O>>> | undefined
+    Entry<FallibleResult<ResultOf<O>>> | undefined
   >(undefined);
   const runOperation = useMemo<ExecuteOperationCallback<O>>(() => {
     const fn = (...args: OptionalParameterIfEmpty<VariablesOf<O>>) => {
@@ -227,20 +221,7 @@ export function useLazyOperation<O extends TypedDocumentNode<any, any>>(
         );
       }
 
-      // TODO: Replace by an Entry?
-      // TODO: Should we just replace the internal value instead to not
-      // trigger double updates? ie. entry
-      const promise = makeFallible(client(operation, ...args)).then(
-        (result) => {
-          update(["data", result]);
-        },
-        (error) => {
-          update(["error", error]);
-        },
-      );
-
-      // just suspend
-      update(["pending", promise]);
+      update(createEntry(makeFallible(client(operation, ...args))));
     };
 
     fn.reset = function reset(): void {
@@ -250,12 +231,7 @@ export function useLazyOperation<O extends TypedDocumentNode<any, any>>(
     return fn;
   }, [client, operation, update]);
 
-  if (data && data[0] !== "data") {
-    // Not data, so either promise or error
-    throw data[1];
-  }
-
-  return [data?.[1], runOperation];
+  return [data ? unwrapEntry(data) : undefined, runOperation];
 }
 
 /**
