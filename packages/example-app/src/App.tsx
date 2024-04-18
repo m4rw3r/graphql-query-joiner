@@ -19,7 +19,6 @@ const client = createClient({
           data: {
             foo: "test",
           },
-          errors: [{ message: "Test error", path: ["other"] }],
         });
       }, 2000);
     });
