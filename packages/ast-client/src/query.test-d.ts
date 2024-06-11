@@ -38,65 +38,65 @@ const emptyRecordQuery = {} as Query<Record<string, never>, MyQueryResult>;
 
 describe("Queries", () => {
   test("are not plain document nodes", () => {
-    expect(myQuery).type.not.toEqual<DocumentNode>();
-    expect(voidQuery).type.not.toEqual<DocumentNode>();
-    expect(undefinedQuery).type.not.toEqual<DocumentNode>();
-    expect(emptyQuery).type.not.toEqual<DocumentNode>();
-    expect(emptyRecordQuery).type.not.toEqual<DocumentNode>();
+    expect(myQuery).type.not.toBe<DocumentNode>();
+    expect(voidQuery).type.not.toBe<DocumentNode>();
+    expect(undefinedQuery).type.not.toBe<DocumentNode>();
+    expect(emptyQuery).type.not.toBe<DocumentNode>();
+    expect(emptyRecordQuery).type.not.toBe<DocumentNode>();
   });
 
   test("All queries are DocumentNodes", () => {
-    expect<DocumentNode>().type.toBeAssignable(myQuery);
-    expect<DocumentNode>().type.toBeAssignable(voidQuery);
-    expect<DocumentNode>().type.toBeAssignable(undefinedQuery);
-    expect<DocumentNode>().type.toBeAssignable(emptyQuery);
-    expect<DocumentNode>().type.toBeAssignable(emptyRecordQuery);
+    expect(myQuery).type.toBeAssignableTo<DocumentNode>();
+    expect(voidQuery).type.toBeAssignableTo<DocumentNode>();
+    expect(undefinedQuery).type.toBeAssignableTo<DocumentNode>();
+    expect(emptyQuery).type.toBeAssignableTo<DocumentNode>();
+    expect(emptyRecordQuery).type.toBeAssignableTo<DocumentNode>();
   });
 
   test("But DocumentNodes are not queries", () => {
-    expect(myQuery).type.not.toBeAssignable<DocumentNode>();
-    expect(voidQuery).type.not.toBeAssignable<DocumentNode>();
-    expect(undefinedQuery).type.not.toBeAssignable<DocumentNode>();
-    expect(emptyQuery).type.not.toBeAssignable<DocumentNode>();
-    expect(emptyRecordQuery).type.not.toBeAssignable<DocumentNode>();
+    expect(myQuery).type.not.toBeAssignableWith<DocumentNode>();
+    expect(voidQuery).type.not.toBeAssignableWith<DocumentNode>();
+    expect(undefinedQuery).type.not.toBeAssignableWith<DocumentNode>();
+    expect(emptyQuery).type.not.toBeAssignableWith<DocumentNode>();
+    expect(emptyRecordQuery).type.not.toBeAssignableWith<DocumentNode>();
   });
 
   test("are not Mutations", () => {
-    expect(myQuery).type.not.toBeAssignable<Mutation<any, any>>();
-    expect(voidQuery).type.not.toBeAssignable<Mutation<any, any>>();
-    expect(undefinedQuery).type.not.toBeAssignable<Mutation<any, any>>();
-    expect(emptyQuery).type.not.toBeAssignable<Mutation<any, any>>();
-    expect(emptyRecordQuery).type.not.toBeAssignable<Mutation<any, any>>();
+    expect(myQuery).type.not.toBeAssignableWith<Mutation<any, any>>();
+    expect(voidQuery).type.not.toBeAssignableWith<Mutation<any, any>>();
+    expect(undefinedQuery).type.not.toBeAssignableWith<Mutation<any, any>>();
+    expect(emptyQuery).type.not.toBeAssignableWith<Mutation<any, any>>();
+    expect(emptyRecordQuery).type.not.toBeAssignableWith<Mutation<any, any>>();
   });
 });
 
 // prettier-ignore
 describe("Client", () => {
   test("If the Query has a non-empty parameter object, the variables parameter is required", () => {
-    expect(runQuery(myQuery, { path: "foo" })).type.toEqual<Promise<MyQueryResult>>();
+    expect(runQuery(myQuery, { path: "foo" })).type.toBe<Promise<MyQueryResult>>();
     expect(runQuery(myQuery)).type.toRaiseError(2554); // "Expected 2 arguments, but got 1."
   });
 
   test("If the query does not require any parameters, we can skip them", () => {
-    expect(runQuery(voidQuery, undefined)).type.toEqual<Promise<MyQueryResult>>();
-    expect(runQuery(voidQuery)).type.toEqual<Promise<MyQueryResult>>();
-    expect(runQuery(undefinedQuery, undefined)).type.toEqual<Promise<MyQueryResult>>();
-    expect(runQuery(undefinedQuery)).type.toEqual<Promise<MyQueryResult>>();
-    expect(runQuery(emptyQuery)).type.toEqual<Promise<MyQueryResult>>();
-    expect(runQuery(emptyQuery, {})).type.toEqual<Promise<MyQueryResult>>();
-    expect(runQuery(emptyRecordQuery)).type.toEqual<Promise<MyQueryResult>>();
-    expect(runQuery(emptyRecordQuery, {})).type.toEqual<Promise<MyQueryResult>>();
+    expect(runQuery(voidQuery, undefined)).type.toBe<Promise<MyQueryResult>>();
+    expect(runQuery(voidQuery)).type.toBe<Promise<MyQueryResult>>();
+    expect(runQuery(undefinedQuery, undefined)).type.toBe<Promise<MyQueryResult>>();
+    expect(runQuery(undefinedQuery)).type.toBe<Promise<MyQueryResult>>();
+    expect(runQuery(emptyQuery)).type.toBe<Promise<MyQueryResult>>();
+    expect(runQuery(emptyQuery, {})).type.toBe<Promise<MyQueryResult>>();
+    expect(runQuery(emptyRecordQuery)).type.toBe<Promise<MyQueryResult>>();
+    expect(runQuery(emptyRecordQuery, {})).type.toBe<Promise<MyQueryResult>>();
   });
 
   test("Empty parameters also accept undefined or empty object", () => {
-    expect(runQuery(voidQuery, undefined)).type.toEqual<Promise<MyQueryResult>>();
-    expect(runQuery(voidQuery, {})).type.toEqual<Promise<MyQueryResult>>();
-    expect(runQuery(undefinedQuery, undefined)).type.toEqual<Promise<MyQueryResult>>();
-    expect(runQuery(undefinedQuery, {})).type.toEqual<Promise<MyQueryResult>>();
-    expect(runQuery(emptyQuery, undefined)).type.toEqual<Promise<MyQueryResult>>();
-    expect(runQuery(emptyQuery, {})).type.toEqual<Promise<MyQueryResult>>();
-    expect(runQuery(emptyRecordQuery, undefined)).type.toEqual<Promise<MyQueryResult>>();
-    expect(runQuery(emptyRecordQuery, {})).type.toEqual<Promise<MyQueryResult>>();
+    expect(runQuery(voidQuery, undefined)).type.toBe<Promise<MyQueryResult>>();
+    expect(runQuery(voidQuery, {})).type.toBe<Promise<MyQueryResult>>();
+    expect(runQuery(undefinedQuery, undefined)).type.toBe<Promise<MyQueryResult>>();
+    expect(runQuery(undefinedQuery, {})).type.toBe<Promise<MyQueryResult>>();
+    expect(runQuery(emptyQuery, undefined)).type.toBe<Promise<MyQueryResult>>();
+    expect(runQuery(emptyQuery, {})).type.toBe<Promise<MyQueryResult>>();
+    expect(runQuery(emptyRecordQuery, undefined)).type.toBe<Promise<MyQueryResult>>();
+    expect(runQuery(emptyRecordQuery, {})).type.toBe<Promise<MyQueryResult>>();
   });
 
   // TODO: Should it though? This could cause issues later when using
@@ -119,20 +119,20 @@ describe("Client", () => {
 
 describe("ResultOf", () => {
   test("ResultOf should resolve to the type of the result", () => {
-    expect<ResultOf<typeof myQuery>>().type.toEqual<MyQueryResult>;
-    expect<ResultOf<typeof voidQuery>>().type.toEqual<MyQueryResult>;
-    expect<ResultOf<typeof undefinedQuery>>().type.toEqual<MyQueryResult>;
-    expect<ResultOf<typeof emptyQuery>>().type.toEqual<MyQueryResult>;
-    expect<ResultOf<typeof emptyRecordQuery>>().type.toEqual<MyQueryResult>;
+    expect<ResultOf<typeof myQuery>>().type.toBe<MyQueryResult>;
+    expect<ResultOf<typeof voidQuery>>().type.toBe<MyQueryResult>;
+    expect<ResultOf<typeof undefinedQuery>>().type.toBe<MyQueryResult>;
+    expect<ResultOf<typeof emptyQuery>>().type.toBe<MyQueryResult>;
+    expect<ResultOf<typeof emptyRecordQuery>>().type.toBe<MyQueryResult>;
   });
 });
 
 describe("VariablesOf", () => {
   test("VariablesOf should resolve to the type of the parameters", () => {
-    expect<VariablesOf<typeof myQuery>>().type.toEqual<MyQueryParams>;
-    expect<VariablesOf<typeof voidQuery>>().type.toEqual<void>;
-    expect<VariablesOf<typeof undefinedQuery>>().type.toEqual<undefined>;
-    expect<VariablesOf<typeof emptyQuery>>().type.toEqual<EmptyObject>;
-    expect<VariablesOf<typeof emptyRecordQuery>>().type.toEqual<EmptyObject>;
+    expect<VariablesOf<typeof myQuery>>().type.toBe<MyQueryParams>;
+    expect<VariablesOf<typeof voidQuery>>().type.toBe<void>;
+    expect<VariablesOf<typeof undefinedQuery>>().type.toBe<undefined>;
+    expect<VariablesOf<typeof emptyQuery>>().type.toBe<EmptyObject>;
+    expect<VariablesOf<typeof emptyRecordQuery>>().type.toBe<EmptyObject>;
   });
 });
