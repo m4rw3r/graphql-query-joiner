@@ -19,6 +19,9 @@ pnpm check
 # Run tests for all packages
 pnpm test
 
+# Run type tests for all packages
+pnpm test:types
+
 # Lint all packages
 pnpm lint
 

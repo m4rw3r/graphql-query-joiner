@@ -19,7 +19,8 @@
     "format": "prettier -w .",
     "format:check": "prettier -c .",
     "prepack": "pnpm run dist",
-    "test": "pnpm -r test"
+    "test": "pnpm -r test",
+    "test:types": "pnpm -r test:types"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
