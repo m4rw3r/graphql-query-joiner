@@ -42,7 +42,7 @@ export function graphql(options: Options = {}): Plugin {
       const imports = comments
         .map((line: string): string | undefined => {
           // TODO: Error handling with this
-          const match = line.match(IMPORT_PATTERN);
+          const match = IMPORT_PATTERN.exec(line);
 
           if (!match?.[1]) {
             return;

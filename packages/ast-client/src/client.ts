@@ -136,9 +136,9 @@ function setVariable(
   }
 }
 
-function createGroup<P, R>(
+function createGroup<R>(
   bundle: QueryBundle,
-  parameters: P,
+  parameters: unknown,
   resolve: ResolveFn<R>,
   reject: RejectFn,
 ): Group {
@@ -218,10 +218,10 @@ export async function handleFetchResponse<R>(response: Response): Promise<R> {
 /**
  * @internal
  */
-export function enqueue<P, R>(
+export function enqueue<R>(
   pending: Group[],
   newBundle: QueryBundle,
-  parameters: P,
+  parameters: unknown,
   resolve: ResolveFn<R>,
   reject: RejectFn,
 ): void {

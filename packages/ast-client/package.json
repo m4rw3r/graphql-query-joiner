@@ -27,9 +27,9 @@
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.2.0",
-    "graphql": "^16.8.1"
+    "graphql": "^16.9.0"
   },
   "devDependencies": {
-    "tstyche": "2.0.0"
+    "tstyche": "2.1.1"
   }
 }
