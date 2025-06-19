@@ -372,8 +372,6 @@ export function createClient({
     new Promise((resolve, reject): void => {
       enqueue(pending, createBundle(operation), variables, resolve, reject);
 
-      if (!timer) {
-        timer = setTimeout(fire, debounce);
-      }
+      timer ??= setTimeout(fire, debounce);
     });
 }
