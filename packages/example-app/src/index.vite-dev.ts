@@ -31,8 +31,8 @@ function createViteDevHtmlTransform(path: string) {
           (data) => {
             callback(null, data);
           },
-          (error: Error) => {
-            callback(error, null);
+          (error: unknown) => {
+            callback(error as Error, null);
           },
         );
       } else {

@@ -240,6 +240,7 @@ export function useLazyOperation<O extends TypedDocumentNode<any, any>>(
 function makeFallible<T>(promise: Promise<T>): Promise<FallibleResult<T>> {
   return promise.then(
     (data) => ({ data, errors: [] }),
+    // eslint-disable-next-line @typescript-eslint/use-unknown-in-catch-callback-variable
     (error) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (typeof error === "object" && error?.name === "QueryError") {
