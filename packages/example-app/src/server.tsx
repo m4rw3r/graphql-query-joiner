@@ -1,9 +1,10 @@
-import { createElement } from "react";
+import type { ReactElement } from "react";
+
 import { Provider, Resume, createStore } from "@m4rw3r/react-pause-champ";
 import { App } from "./App";
 
 // Full HTML skeleton
-export function Html(): JSX.Element {
+export function Html(): ReactElement {
   return (
     <html>
       <head>
@@ -19,7 +20,7 @@ export function Html(): JSX.Element {
   );
 }
 
-export function createAppRoot(): JSX.Element {
+export function createAppRoot(): ReactElement {
   return (
     <Provider store={createStore()}>
       <Html />

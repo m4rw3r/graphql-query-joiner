@@ -1,6 +1,7 @@
 import type { RunOperation } from "@awardit/graphql-ast-client";
+import type { ReactElement } from "react";
 
-import { Suspense, createElement, useTransition, useState } from "react";
+import { Suspense, useTransition, useState } from "react";
 import { createClient } from "@awardit/graphql-ast-client";
 import {
   Provider,
@@ -26,7 +27,7 @@ const client = createClient({
   debounce: 0,
 });
 
-function Loader(): JSX.Element {
+function Loader(): ReactElement {
   return <div>Loading...</div>;
 }
 
@@ -34,7 +35,7 @@ function Dogs({
   startTransition,
 }: {
   startTransition: (cb: () => void) => void;
-}): JSX.Element {
+}): ReactElement {
   const data = useQuery(getDogs, { type: "GOOD" });
   const [result, runMutation] = useLazyOperation(addDog);
 
@@ -59,7 +60,7 @@ function Dogs({
   );
 }
 
-export function App(): JSX.Element {
+export function App(): ReactElement {
   const [isTransitioning, startTransition] = useTransition();
   const [show, setShow] = useState(false);
 
