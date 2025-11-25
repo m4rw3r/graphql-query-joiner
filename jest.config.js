@@ -1,10 +1,8 @@
-import type { JestConfigWithTsJest } from "ts-jest";
-
 /*
  * For a detailed explanation regarding each configuration property and type check, visit:
  * https://jestjs.io/docs/configuration
  */
-const jestConfig: JestConfigWithTsJest = {
+const jestConfig = {
   clearMocks: true,
   collectCoverage: true,
   coverageDirectory: "coverage",
@@ -13,7 +11,7 @@ const jestConfig: JestConfigWithTsJest = {
   transform: {
     "^.+\\.(t|j)sx?$": [
       "ts-jest",
-      { isolatedModules: true, diagnostics: { ignoreCodes: ["TS151001"] } },
+      { diagnostics: { ignoreCodes: ["TS151001"] } },
     ],
   },
 };
