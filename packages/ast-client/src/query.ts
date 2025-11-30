@@ -10,6 +10,7 @@ import type {
  *
  * @deprecated
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 export type Query<P, R> = Operation<P, R> & {
   /**
    * Phantom type (never assigned) for indicating it is a query.
@@ -22,6 +23,7 @@ export type Query<P, R> = Operation<P, R> & {
  *
  * @deprecated
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 export type Mutation<P, R> = Operation<P, R> & {
   /**
    * Phantom type (never assigned) for indicating it is a mutation.

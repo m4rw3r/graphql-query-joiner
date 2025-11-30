@@ -367,7 +367,8 @@ export function createClient({
   // provide caching?
   return <O extends TypedDocumentNode<any, any>>(
     operation: O,
-    variables?: VariablesOf<O> | EmptyObject,
+    // VariablesOf<O> or empty object, but empty object is more permissive
+    variables?: EmptyObject,
   ): Promise<ResultOf<O>> =>
     new Promise((resolve, reject): void => {
       enqueue(pending, createBundle(operation), variables, resolve, reject);
