@@ -34,7 +34,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@rollup/pluginutils": "^5.2.0",
-    "graphql": "^16.11.0"
+    "@rollup/pluginutils": "^5.3.0",
+    "graphql": "^16.12.0"
   }
 }
