@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Advanced createBundle 1`] = `
 {
@@ -29,6 +29,7 @@ exports[`Advanced createBundle 1`] = `
   },
   "fragments": Map {
     "Foo" => {
+      "description": undefined,
       "directives": [],
       "kind": "FragmentDefinition",
       "name": {
@@ -94,6 +95,7 @@ exports[`Advanced createBundle 1`] = `
   "variables": Map {
     "param" => {
       "defaultValue": undefined,
+      "description": undefined,
       "directives": [],
       "kind": "VariableDefinition",
       "type": {
@@ -155,6 +157,7 @@ exports[`Advanced createBundle 2`] = `
       "variableDefinitions": [
         {
           "defaultValue": undefined,
+          "description": undefined,
           "directives": [],
           "kind": "VariableDefinition",
           "type": {
@@ -178,6 +181,7 @@ exports[`Advanced createBundle 2`] = `
       ],
     },
     {
+      "description": undefined,
       "directives": [],
       "kind": "FragmentDefinition",
       "name": {
@@ -307,6 +311,7 @@ exports[`Advanced mergeQuery 1`] = `
   "variables": Map {
     "param" => {
       "defaultValue": undefined,
+      "description": undefined,
       "directives": [],
       "kind": "VariableDefinition",
       "type": {
@@ -425,6 +430,7 @@ exports[`Advanced mergeQuery 2`] = `
     },
     "fragments": Map {
       "Foo" => {
+        "description": undefined,
         "directives": [],
         "kind": "FragmentDefinition",
         "name": {
@@ -460,6 +466,7 @@ exports[`Advanced mergeQuery 2`] = `
     "variables": Map {
       "param" => {
         "defaultValue": undefined,
+        "description": undefined,
         "directives": [],
         "kind": "VariableDefinition",
         "type": {
@@ -479,6 +486,7 @@ exports[`Advanced mergeQuery 2`] = `
       },
       "param_1" => {
         "defaultValue": undefined,
+        "description": undefined,
         "directives": [],
         "kind": "VariableDefinition",
         "type": {
@@ -611,6 +619,7 @@ exports[`Advanced mergeQuery 3`] = `
       "variableDefinitions": [
         {
           "defaultValue": undefined,
+          "description": undefined,
           "directives": [],
           "kind": "VariableDefinition",
           "type": {
@@ -630,6 +639,7 @@ exports[`Advanced mergeQuery 3`] = `
         },
         {
           "defaultValue": undefined,
+          "description": undefined,
           "directives": [],
           "kind": "VariableDefinition",
           "type": {
@@ -650,6 +660,7 @@ exports[`Advanced mergeQuery 3`] = `
       ],
     },
     {
+      "description": undefined,
       "directives": [],
       "kind": "FragmentDefinition",
       "name": {
@@ -1253,6 +1264,7 @@ exports[`mergeQuery with fragments 1`] = `
   },
   "fragments": Map {
     "Foo" => {
+      "description": undefined,
       "directives": [],
       "kind": "FragmentDefinition",
       "name": {
@@ -1299,6 +1311,7 @@ exports[`mergeQuery with fragments 1`] = `
   "variables": Map {
     "param" => {
       "defaultValue": undefined,
+      "description": undefined,
       "directives": [],
       "kind": "VariableDefinition",
       "type": {
@@ -1425,6 +1438,7 @@ exports[`mergeQuery with fragments 2`] = `
     },
     "fragments": Map {
       "Foo" => {
+        "description": undefined,
         "directives": [],
         "kind": "FragmentDefinition",
         "name": {
@@ -1467,6 +1481,7 @@ exports[`mergeQuery with fragments 2`] = `
         },
       },
       "Foo_1" => {
+        "description": undefined,
         "directives": [],
         "kind": "FragmentDefinition",
         "name": {
@@ -1502,6 +1517,7 @@ exports[`mergeQuery with fragments 2`] = `
     "variables": Map {
       "param" => {
         "defaultValue": undefined,
+        "description": undefined,
         "directives": [],
         "kind": "VariableDefinition",
         "type": {
@@ -1521,6 +1537,7 @@ exports[`mergeQuery with fragments 2`] = `
       },
       "param_1" => {
         "defaultValue": undefined,
+        "description": undefined,
         "directives": [],
         "kind": "VariableDefinition",
         "type": {
@@ -1661,6 +1678,7 @@ exports[`mergeQuery with fragments 3`] = `
       "variableDefinitions": [
         {
           "defaultValue": undefined,
+          "description": undefined,
           "directives": [],
           "kind": "VariableDefinition",
           "type": {
@@ -1680,6 +1698,7 @@ exports[`mergeQuery with fragments 3`] = `
         },
         {
           "defaultValue": undefined,
+          "description": undefined,
           "directives": [],
           "kind": "VariableDefinition",
           "type": {
@@ -1700,6 +1719,7 @@ exports[`mergeQuery with fragments 3`] = `
       ],
     },
     {
+      "description": undefined,
       "directives": [],
       "kind": "FragmentDefinition",
       "name": {
@@ -1742,6 +1762,7 @@ exports[`mergeQuery with fragments 3`] = `
       },
     },
     {
+      "description": undefined,
       "directives": [],
       "kind": "FragmentDefinition",
       "name": {
