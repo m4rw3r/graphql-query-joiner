@@ -27,7 +27,7 @@ function createViteDevHtmlTransform(path: string) {
         }
 
         // The path is used for some relative URLs/imports
-        viteDevServer.transformIndexHtml(path, chunk.toString()).then(
+        viteDevServer.transformIndexHtml(path, chunk).then(
           (data) => {
             callback(null, data);
           },
