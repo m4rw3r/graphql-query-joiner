@@ -54,19 +54,19 @@ describe("Queries", () => {
   });
 
   test("But DocumentNodes are not queries", () => {
-    expect(myQuery).type.not.toBeAssignableWith<DocumentNode>();
-    expect(voidQuery).type.not.toBeAssignableWith<DocumentNode>();
-    expect(undefinedQuery).type.not.toBeAssignableWith<DocumentNode>();
-    expect(emptyQuery).type.not.toBeAssignableWith<DocumentNode>();
-    expect(emptyRecordQuery).type.not.toBeAssignableWith<DocumentNode>();
+    expect(myQuery).type.not.toBeAssignableFrom<DocumentNode>();
+    expect(voidQuery).type.not.toBeAssignableFrom<DocumentNode>();
+    expect(undefinedQuery).type.not.toBeAssignableFrom<DocumentNode>();
+    expect(emptyQuery).type.not.toBeAssignableFrom<DocumentNode>();
+    expect(emptyRecordQuery).type.not.toBeAssignableFrom<DocumentNode>();
   });
 
   test("are not Mutations", () => {
-    expect(myQuery).type.not.toBeAssignableWith<Mutation<any, any>>();
-    expect(voidQuery).type.not.toBeAssignableWith<Mutation<any, any>>();
-    expect(undefinedQuery).type.not.toBeAssignableWith<Mutation<any, any>>();
-    expect(emptyQuery).type.not.toBeAssignableWith<Mutation<any, any>>();
-    expect(emptyRecordQuery).type.not.toBeAssignableWith<Mutation<any, any>>();
+    expect(myQuery).type.not.toBeAssignableFrom<Mutation<any, any>>();
+    expect(voidQuery).type.not.toBeAssignableFrom<Mutation<any, any>>();
+    expect(undefinedQuery).type.not.toBeAssignableFrom<Mutation<any, any>>();
+    expect(emptyQuery).type.not.toBeAssignableFrom<Mutation<any, any>>();
+    expect(emptyRecordQuery).type.not.toBeAssignableFrom<Mutation<any, any>>();
   });
 });
 
@@ -119,20 +119,22 @@ describe("Client", () => {
 
 describe("ResultOf", () => {
   test("ResultOf should resolve to the type of the result", () => {
-    expect<ResultOf<typeof myQuery>>().type.toBe<MyQueryResult>;
-    expect<ResultOf<typeof voidQuery>>().type.toBe<MyQueryResult>;
-    expect<ResultOf<typeof undefinedQuery>>().type.toBe<MyQueryResult>;
-    expect<ResultOf<typeof emptyQuery>>().type.toBe<MyQueryResult>;
-    expect<ResultOf<typeof emptyRecordQuery>>().type.toBe<MyQueryResult>;
+    expect<ResultOf<typeof myQuery>>().type.toBe<MyQueryResult>();
+    expect<ResultOf<typeof voidQuery>>().type.toBe<MyQueryResult>();
+    expect<ResultOf<typeof undefinedQuery>>().type.toBe<MyQueryResult>();
+    expect<ResultOf<typeof emptyQuery>>().type.toBe<MyQueryResult>();
+    expect<ResultOf<typeof emptyRecordQuery>>().type.toBe<MyQueryResult>();
   });
 });
 
 describe("VariablesOf", () => {
   test("VariablesOf should resolve to the type of the parameters", () => {
-    expect<VariablesOf<typeof myQuery>>().type.toBe<MyQueryParams>;
-    expect<VariablesOf<typeof voidQuery>>().type.toBe<void>;
-    expect<VariablesOf<typeof undefinedQuery>>().type.toBe<undefined>;
-    expect<VariablesOf<typeof emptyQuery>>().type.toBe<EmptyObject>;
-    expect<VariablesOf<typeof emptyRecordQuery>>().type.toBe<EmptyObject>;
+    expect<VariablesOf<typeof myQuery>>().type.toBe<MyQueryParams>();
+    expect<VariablesOf<typeof voidQuery>>().type.toBe<void>();
+    expect<VariablesOf<typeof undefinedQuery>>().type.toBe<undefined>();
+    expect<VariablesOf<typeof emptyQuery>>().type.toBe<EmptyObject>();
+    expect<
+      VariablesOf<typeof emptyRecordQuery>
+    >().type.toBeAssignableTo<EmptyObject>();
   });
 });
