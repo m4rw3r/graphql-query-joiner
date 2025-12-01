@@ -195,12 +195,20 @@ export async function handleFetchResponse<R>(response: Response): Promise<R> {
     );
   }
 
-  let data: Record<string, unknown>;
+  let data: unknown;
 
   try {
-    data = JSON.parse(bodyText) as Record<string, unknown>;
+    data = JSON.parse(bodyText);
   } catch (error) {
     throw parseError(response, bodyText, error);
+  }
+
+  if (typeof data !== "object" || data === null) {
+    throw requestError(
+      response,
+      bodyText,
+      "Unexpected non-object in response body",
+    );
   }
 
   if (
