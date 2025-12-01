@@ -169,6 +169,15 @@ function createGroup<R>(
 }
 
 /**
+ * ContentType for GraphQL responses are either
+ * application/json, or application/graphql-response+json.
+ * Encoding can also be present.
+ *
+ * See https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md
+ */
+const CONTENT_TYPE_JSON = /application\/.*json/i;
+
+/**
  * Handles a fetch-Response and parses it into a GraphQLResponse,
  * throws if the request is not ok or if JSON fails to parse.
  */
@@ -176,12 +185,7 @@ export async function handleFetchResponse<R>(response: Response): Promise<R> {
   const contentType = response.headers.get("Content-Type");
   const bodyText = await response.text();
 
-  // ContentType for GraphQL responses are either
-  // application/json, or application/graphql-response+json.
-  // Encoding can also be present.
-  //
-  // See https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md
-  if (!/application\/.*json/i.test(contentType ?? "")) {
+  if (!CONTENT_TYPE_JSON.test(contentType ?? "")) {
     throw requestError(
       response,
       bodyText,
