@@ -181,7 +181,9 @@ const CONTENT_TYPE_JSON = /application\/.*json/i;
  * Handles a fetch-Response and parses it into a GraphQLResponse,
  * throws if the request is not ok or if JSON fails to parse.
  */
-export async function handleFetchResponse<R>(response: Response): Promise<R> {
+export async function handleFetchResponse<R>(
+  response: Response,
+): Promise<GraphQLResponse<R>> {
   const contentType = response.headers.get("Content-Type");
   const bodyText = await response.text();
 
@@ -217,7 +219,7 @@ export async function handleFetchResponse<R>(response: Response): Promise<R> {
   ) {
     // SAFETY: Since it is successful with data and/or errors we assume we
     // have GraphQL-data in the correct format:
-    return data as R;
+    return data as GraphQLResponse<R>;
   }
 
   throw requestError(
