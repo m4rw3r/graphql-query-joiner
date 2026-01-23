@@ -186,14 +186,18 @@ export async function handleFetchResponse<R>(
 ): Promise<GraphQLResponse<R>> {
   const contentType = response.headers.get("Content-Type");
   const bodyText = await response.text();
+  const statusText = response.statusText;
+  const statusMessage = statusText
+    ? `${response.status} ${statusText}`
+    : `${response.status}`;
 
   if (!CONTENT_TYPE_JSON.test(contentType ?? "")) {
     throw requestError(
       response,
       bodyText,
       !response.ok
-        ? `Received status ${response.status} ${response.statusText}`
-        : `Unexpected Content-Type ${contentType}`,
+        ? `Received status ${statusMessage}`
+        : `Unexpected Content-Type ${contentType ?? "none"}`,
     );
   }
 
@@ -225,7 +229,7 @@ export async function handleFetchResponse<R>(
   throw requestError(
     response,
     bodyText,
-    `Received unexpected JSON body content: ${bodyText}`,
+    "Received unexpected JSON body content",
   );
 }
 
@@ -307,8 +311,9 @@ export async function runGroup(
   { bundle, variables, queries }: Group,
 ): Promise<void> {
   try {
+    const operationText = print(createDocument(bundle));
     const bundledResponse = await runOperation({
-      operation: print(createDocument(bundle)),
+      operation: operationText,
       variables,
     });
 

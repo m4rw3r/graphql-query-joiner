@@ -1,6 +1,6 @@
 // TODO: Write full e2e tests with some basic cases
 
-import type { Query, GraphQLResponse } from "./index";
+import type { Query, GraphQLResponse, QueryError } from "./index";
 
 import { parse } from "graphql/language";
 import { createClient, handleFetchResponse } from "./index";
@@ -13,7 +13,7 @@ describe("Client", () => {
         type: "basic",
         status: 200,
         statusText: "OK",
-        headers: new Map([["Content-Type", "application/json"]]),
+        headers: new Headers([["Content-Type", "application/json"]]),
         text: jest.fn(
           () =>
             new Promise((resolve) => {
@@ -33,12 +33,12 @@ describe("Client", () => {
       { info: string; moreData: string }
     >;
     let result: { info: string } | undefined;
-    let error: any;
+    let error: QueryError | undefined;
 
     try {
       result = await client(query);
     } catch (e) {
-      error = e;
+      error = e as QueryError;
     }
 
     expect(error).toBeUndefined();
@@ -52,7 +52,8 @@ describe("Client", () => {
         type: "basic",
         status: 200,
         statusText: "OK",
-        headers: new Map([["Content-Type", "application/json"]]),
+        url: "https://example.com/graphql?operation=query",
+        headers: new Headers([["Content-Type", "application/json"]]),
         text: jest.fn(
           () =>
             new Promise((resolve) => {
@@ -85,23 +86,27 @@ describe("Client", () => {
     expect(result).toBeUndefined();
     expect(error).toBeInstanceOf(Error);
     expect(error.name).toBe("QueryError");
-    expect(error.message).toBe("Test error");
+    expect(error.message).toMatch(
+      /GraphQL errors \(errorCount=1, first="Test error", path=info\)/,
+    );
     expect(error.errors).toEqual([{ message: "Test error", path: ["info"] }]);
     expect(error.queryData).toEqual({ info: null, moreData: "testing" });
   });
 
   test("Malformed JSON response", async () => {
+    const bodyText = `{ "error": true, "message": "Something went wrong" }`;
     const runOperation = jest.fn<Promise<GraphQLResponse<any>>, []>(() =>
       handleFetchResponse({
         ok: true,
         type: "basic",
         status: 200,
         statusText: "OK",
-        headers: new Map([["Content-Type", "application/json"]]),
+        url: "https://example.com/graphql?response=invalid",
+        headers: new Headers([["Content-Type", "application/json"]]),
         text: jest.fn(
           () =>
             new Promise((resolve) => {
-              resolve(`{ "error": true, "message": "Something went wrong" }`);
+              resolve(bodyText);
             }),
         ),
       } as unknown as Response),
@@ -129,12 +134,12 @@ describe("Client", () => {
     expect(error).toBeInstanceOf(Error);
     expect(error.name).toBe("RequestError");
     expect(error.message).toBe(
-      `Received unexpected JSON body content: { "error": true, "message": "Something went wrong" }`,
+      `Received unexpected JSON body content (url=https://example.com/graphql, status=200, contentType=application/json, bodyLength=${bodyText.length})`,
     );
     expect(error.statusCode).toEqual(200);
-    expect(error.bodyText).toEqual(
-      `{ "error": true, "message": "Something went wrong" }`,
-    );
+    expect(error.requestUrl).toBe("https://example.com/graphql");
+    expect(error.contentType).toBe("application/json");
+    expect(error.bodyLength).toBe(bodyText.length);
   });
 
   test("Body interrupted", async () => {
@@ -145,7 +150,7 @@ describe("Client", () => {
         type: "basic",
         status: 200,
         statusText: "OK",
-        headers: new Map([
+        headers: new Headers([
           ["Content-Type", "application/graphql-response+json"],
         ]),
         text: jest.fn(
