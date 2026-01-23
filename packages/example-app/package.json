@@ -22,24 +22,24 @@
     "@awardit/graphql-ast-client": "workspace:^",
     "@awardit/react-graphql-hooks": "workspace:^",
     "@m4rw3r/react-pause-champ": "^1.0.1",
-    "express": "^5.1.0",
+    "express": "^5.2.1",
     "graphql": "^16.12.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "^5.0.7",
-    "@graphql-codegen/near-operation-file-preset": "^3.1.0",
-    "@graphql-codegen/typescript": "^4.1.6",
-    "@graphql-codegen/typescript-operations": "^4.6.1",
+    "@graphql-codegen/cli": "^6.1.1",
+    "@graphql-codegen/near-operation-file-preset": "^4.0.0",
+    "@graphql-codegen/typescript": "^5.0.7",
+    "@graphql-codegen/typescript-operations": "^5.0.7",
     "@graphql-typed-document-node/core": "^3.2.0",
-    "@types/express": "^5.0.5",
-    "@types/react": "^19.2.7",
+    "@types/express": "^5.0.6",
+    "@types/react": "^19.2.9",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^4.7.0",
+    "@vitejs/plugin-react": "^5.1.2",
     "vavite": "^5.1.0",
-    "vite": "^6.4.1",
-    "vite-plugin-graphql-codegen": "^3.7.0",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite": "^7.3.1",
+    "vite-plugin-graphql-codegen": "^3.8.0",
+    "vite-tsconfig-paths": "^6.0.4"
   }
 }
