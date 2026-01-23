@@ -241,7 +241,7 @@ export function enqueue<R>(
 ): void {
   const last = pending[pending.length - 1];
 
-  if (last && last.bundle.operation === newBundle.operation) {
+  if (last?.bundle.operation === newBundle.operation) {
     // Merge the queries since their types match
     const { bundle, renamedVariables, renamedFields } = mergeBundle(
       last.bundle,
