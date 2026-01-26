@@ -1,5 +1,23 @@
 import type { GraphQLError } from "./query";
 
+const TRACING_HEADERS = [
+  "traceparent",
+  "x-request-id",
+  "x-correlation-id",
+  "x-amzn-trace-id",
+  "x-datadog-trace-id",
+  "x-b3-traceid",
+  "x-b3-spanid",
+  "x-ot-span-context",
+] as const;
+
+type TracingHeader = (typeof TRACING_HEADERS)[number];
+
+interface TraceHeaderInfo {
+  name: TracingHeader;
+  value: string;
+}
+
 export interface MissingVariableError extends Error {
   name: "MissingVariableError";
   variableName: string;
@@ -7,16 +25,20 @@ export interface MissingVariableError extends Error {
 
 export interface RequestError extends Error {
   name: "RequestError";
-  response: Response;
   statusCode: number;
-  bodyText: string;
+  requestUrl?: string;
+  contentType: string | null;
+  bodyLength: number;
+  traceHeader?: TraceHeaderInfo;
 }
 
 export interface ParseError extends Error {
   name: "ParseError";
-  response: Response;
   statusCode: number;
-  bodyText: string;
+  requestUrl?: string;
+  contentType: string | null;
+  bodyLength: number;
+  traceHeader?: TraceHeaderInfo;
 }
 
 export interface QueryError extends Error {
@@ -25,36 +47,88 @@ export interface QueryError extends Error {
   queryData: Record<string, unknown>;
 }
 
-function graphqlErrorMessage({ message }: GraphQLError): string {
-  return message;
+function createResponseError(
+  name: "RequestError",
+  response: Response,
+  bodyText: string,
+  message: (details: string) => string,
+): RequestError;
+function createResponseError(
+  name: "ParseError",
+  response: Response,
+  bodyText: string,
+  message: (details: string) => string,
+): ParseError;
+function createResponseError(
+  name: "RequestError" | "ParseError",
+  response: Response,
+  bodyText: string,
+  message: (details: string) => string,
+): RequestError | ParseError {
+  let requestUrl: string | undefined;
+
+  if (response.url) {
+    try {
+      const parsed = new URL(response.url);
+
+      requestUrl = `${parsed.origin}${parsed.pathname}`;
+    } catch {
+      // Empty on purpose
+    }
+  }
+
+  const contentType = response.headers.get("content-type");
+  const traceHeader = TRACING_HEADERS.map((name) => {
+    const value = response.headers.get(name);
+
+    return value ? { name, value } : undefined;
+  }).find(Boolean);
+  const details = [
+    requestUrl && `url=${requestUrl}`,
+    `status=${response.status}`,
+    `contentType=${contentType ?? "none"}`,
+    `bodyLength=${bodyText.length}`,
+    traceHeader && `${traceHeader.name}=${traceHeader.value}`,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  return Object.assign(new Error(message(details)), {
+    name,
+    statusCode: response.status,
+    requestUrl,
+    contentType,
+    traceHeader,
+    bodyLength: bodyText.length,
+  }) as RequestError | ParseError;
 }
 
 export function requestError(
   response: Response,
   bodyText: string,
-  message: unknown,
+  message: string,
 ): RequestError {
-  const error: RequestError = new Error(message as string) as RequestError;
-
-  error.name = "RequestError";
-  error.response = response;
-  error.statusCode = response.status;
-  error.bodyText = bodyText;
-
-  return error;
+  return createResponseError(
+    "RequestError",
+    response,
+    bodyText,
+    (details) => `${message} (${details})`,
+  );
 }
 
 export function parseError(
   response: Response,
   bodyText: string,
-  message: unknown,
+  cause: unknown,
 ): ParseError {
-  const error: ParseError = new Error(message as string) as ParseError;
-
-  error.name = "ParseError";
-  error.response = response;
-  error.statusCode = response.status;
-  error.bodyText = bodyText;
+  const error = createResponseError(
+    "ParseError",
+    response,
+    bodyText,
+    (details) =>
+      `Failed to parse JSON response (${details}, cause=${String(cause)})`,
+  );
+  (error as Error & { cause?: unknown }).cause = cause;
 
   return error;
 }
@@ -63,15 +137,21 @@ export function queryError(
   errors: GraphQLError[],
   queryData: Record<string, unknown>,
 ): QueryError {
-  const error: QueryError = new Error(
-    errors.map(graphqlErrorMessage).join(", "),
-  ) as QueryError;
+  const firstError = errors[0];
+  const firstMessage = firstError?.message.trim() ?? "";
+  const details = [
+    `errorCount=${errors.length}`,
+    firstMessage && `first="${firstMessage}"`,
+    firstError?.path?.length ? `path=${firstError.path.join(".")}` : undefined,
+  ]
+    .filter(Boolean)
+    .join(", ");
 
-  error.name = "QueryError";
-  error.errors = errors;
-  error.queryData = queryData;
-
-  return error;
+  return Object.assign(new Error(`GraphQL errors (${details})`), {
+    name: "QueryError",
+    errors,
+    queryData,
+  }) as QueryError;
 }
 
 export function missingVariableError(name: string): MissingVariableError {

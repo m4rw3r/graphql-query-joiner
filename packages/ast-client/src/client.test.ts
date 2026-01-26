@@ -1,5 +1,6 @@
 import type { Group, RunOperation } from "./client";
 import type { GraphQLError } from "./query";
+import type { QueryError } from "./error";
 
 import { parse, print } from "graphql/language";
 import { createBundle, createDocument } from "./bundle";
@@ -9,7 +10,6 @@ import {
   groupErrors,
   runGroup,
 } from "../src/client";
-import { queryError } from "./error";
 
 test("enqueue missing parameters", () => {
   const resolve = jest.fn();
@@ -17,7 +17,6 @@ test("enqueue missing parameters", () => {
   const bundle = createBundle(parse("query ($foo: String) { info }"));
   const queue: Group[] = [];
   const parameters = { foo: "test" };
-
   expect(() => {
     enqueue(queue, bundle, undefined, resolve, reject);
   }).toThrow("Variable 'foo' is missing.");
@@ -343,7 +342,7 @@ describe("handleFetchResponse", () => {
     const response = {
       ok: false,
       status: 123,
-      headers: new Map(),
+      headers: new Headers(),
       text: jest.fn(
         () =>
           new Promise((_, reject) => {
@@ -369,7 +368,7 @@ describe("handleFetchResponse", () => {
     const response = {
       ok: true,
       status: 200,
-      headers: new Map(),
+      headers: new Headers(),
       text: jest.fn(
         () =>
           new Promise((_, reject) => {
@@ -391,15 +390,18 @@ describe("handleFetchResponse", () => {
   });
 
   test("ok, bad content type", async () => {
+    const bodyText = `{"data": { "info": true } }`;
+    const url = "https://example.com/graphql?missing=content";
     const response = {
       ok: true,
       status: 200,
       statusText: "OK",
-      headers: new Map(),
+      url,
+      headers: new Headers(),
       text: jest.fn(
         () =>
           new Promise((resolve) => {
-            resolve(`{"data": { "info": true } }`);
+            resolve(bodyText);
           }),
       ),
     };
@@ -412,24 +414,66 @@ describe("handleFetchResponse", () => {
     }
 
     expect(error.name).toBe("RequestError");
-    expect(error.message).toBe("Unexpected Content-Type undefined");
+    expect(error.message).toBe(
+      `Unexpected Content-Type none (url=https://example.com/graphql, status=200, contentType=none, bodyLength=${bodyText.length})`,
+    );
     expect(error.statusCode).toBe(200);
-    expect(error.bodyText).toBe(`{"data": { "info": true } }`);
-    expect(error.response).toBe(response);
+    expect(error.requestUrl).toBe("https://example.com/graphql");
+    expect(error.contentType).toBeNull();
+    expect(error.bodyLength).toBe(bodyText.length);
+    expect(response.text).toHaveBeenCalledTimes(1);
+    expect(response.text).toHaveBeenCalledWith();
+  });
+
+  test("ok, bad content type with trace header", async () => {
+    const bodyText = `{"data": { "info": true } }`;
+    const url = "https://example.com/graphql?trace=request";
+    const response = {
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      url,
+      headers: new Headers([["x-request-id", "req-123"]]),
+      text: jest.fn(
+        () =>
+          new Promise((resolve) => {
+            resolve(bodyText);
+          }),
+      ),
+    };
+    let error: any;
+
+    try {
+      await handleFetchResponse(response as any);
+    } catch (e) {
+      error = e;
+    }
+
+    expect(error.name).toBe("RequestError");
+    expect(error.message).toBe(
+      `Unexpected Content-Type none (url=https://example.com/graphql, status=200, contentType=none, bodyLength=${bodyText.length}, x-request-id=req-123)`,
+    );
+    expect(error.traceHeader).toEqual({
+      name: "x-request-id",
+      value: "req-123",
+    });
     expect(response.text).toHaveBeenCalledTimes(1);
     expect(response.text).toHaveBeenCalledWith();
   });
 
   test("not ok, bad content type", async () => {
+    const bodyText = `{"data": { "info": true } }`;
+    const url = "https://example.com/graphql?status=400";
     const response = {
       ok: false,
       status: 400,
       statusText: "Bad Request",
-      headers: new Map(),
+      url,
+      headers: new Headers(),
       text: jest.fn(
         () =>
           new Promise((resolve) => {
-            resolve(`{"data": { "info": true } }`);
+            resolve(bodyText);
           }),
       ),
     };
@@ -442,23 +486,30 @@ describe("handleFetchResponse", () => {
     }
 
     expect(error.name).toBe("RequestError");
-    expect(error.message).toBe("Received status 400 Bad Request");
+    expect(error.message).toBe(
+      `Received status 400 Bad Request (url=https://example.com/graphql, status=400, contentType=none, bodyLength=${bodyText.length})`,
+    );
     expect(error.statusCode).toBe(400);
-    expect(error.bodyText).toBe(`{"data": { "info": true } }`);
-    expect(error.response).toBe(response);
+    expect(error.requestUrl).toBe("https://example.com/graphql");
+    expect(error.contentType).toBeNull();
+    expect(error.bodyLength).toBe(bodyText.length);
     expect(response.text).toHaveBeenCalledTimes(1);
     expect(response.text).toHaveBeenCalledWith();
   });
 
   test("ok bad JSON", async () => {
+    const bodyText = "The text";
+    const url = "https://example.com/graphql?format=invalid";
     const response = {
       ok: true,
       status: 200,
-      headers: new Map([["Content-Type", "application/graphql+json"]]),
+      statusText: "OK",
+      url,
+      headers: new Headers([["Content-Type", "application/graphql+json"]]),
       text: jest.fn(
         () =>
           new Promise((resolve) => {
-            resolve("The text");
+            resolve(bodyText);
           }),
       ),
     };
@@ -471,10 +522,13 @@ describe("handleFetchResponse", () => {
     }
 
     expect(error.name).toBe("ParseError");
-    expect(error.message).toMatch(/SyntaxError: Unexpected token/);
+    expect(error.message).toMatch(
+      /Failed to parse JSON response \(url=https:\/\/example\.com\/graphql, status=200, contentType=application\/graphql\+json, bodyLength=8, cause=SyntaxError: Unexpected token/,
+    );
     expect(error.statusCode).toBe(200);
-    expect(error.bodyText).toBe("The text");
-    expect(error.response).toBe(response);
+    expect(error.requestUrl).toBe("https://example.com/graphql");
+    expect(error.contentType).toBe("application/graphql+json");
+    expect(error.bodyLength).toBe(bodyText.length);
     expect(response.text).toHaveBeenCalledTimes(1);
     expect(response.text).toHaveBeenCalledWith();
   });
@@ -483,7 +537,7 @@ describe("handleFetchResponse", () => {
     const response = {
       ok: true,
       status: 200,
-      headers: new Map([["Content-Type", "application/graphql+json"]]),
+      headers: new Headers([["Content-Type", "application/graphql+json"]]),
       text: jest.fn(
         () =>
           new Promise((resolve) => {
@@ -502,7 +556,7 @@ describe("handleFetchResponse", () => {
     const response = {
       ok: true,
       status: 200,
-      headers: new Map([["Content-Type", "application/json"]]),
+      headers: new Headers([["Content-Type", "application/json"]]),
       text: jest.fn(
         () =>
           new Promise((resolve) => {
@@ -535,7 +589,7 @@ describe("handleFetchResponse", () => {
     const response = {
       ok: false,
       status: 400,
-      headers: new Map([["Content-Type", "application/json"]]),
+      headers: new Headers([["Content-Type", "application/json"]]),
       text: jest.fn(
         () =>
           new Promise((resolve) => {
@@ -803,9 +857,11 @@ test("runGroup error split", async () => {
   expect(reject).toHaveBeenCalledTimes(0);
   expect(resolve).toHaveBeenCalledWith({ info: { name: "info" } });
   expect(resolve.mock.calls[0]![0]!.info).toBe(info);
-  expect(reject2).toHaveBeenCalledWith(
-    queryError([error1], { info: undefined }),
-  );
+  const splitError = reject2.mock.calls[0]![0] as QueryError;
+
+  expect(splitError.name).toBe("QueryError");
+  expect(splitError.errors).toEqual([error1]);
+  expect(splitError.queryData).toEqual({ info: undefined });
   expect(resolve2).toHaveBeenCalledTimes(0);
 });
 
@@ -862,11 +918,16 @@ test("runGroup error split multiple", async () => {
 
   await result;
 
-  expect(reject).toHaveBeenCalledWith(queryError([error0, error2], { info }));
+  const firstError = reject.mock.calls[0]![0] as QueryError;
+  const secondError = reject2.mock.calls[0]![0] as QueryError;
+
+  expect(firstError.name).toBe("QueryError");
+  expect(firstError.errors).toEqual([error0, error2]);
+  expect(firstError.queryData).toEqual({ info });
   expect(resolve).toHaveBeenCalledTimes(0);
-  expect(reject2).toHaveBeenCalledWith(
-    queryError([error1, error2], { info: info2 }),
-  );
+  expect(secondError.name).toBe("QueryError");
+  expect(secondError.errors).toEqual([error1, error2]);
+  expect(secondError.queryData).toEqual({ info: info2 });
   expect(resolve2).toHaveBeenCalledTimes(0);
 });
 
@@ -906,5 +967,9 @@ test("Run empty group with empty response", async () => {
   await result;
 
   expect(resolve).toHaveBeenCalledTimes(0);
-  expect(reject).toHaveBeenCalledWith(queryError([error1], {}));
+  const rejectedError = reject.mock.calls[0]![0] as QueryError;
+
+  expect(rejectedError.name).toBe("QueryError");
+  expect(rejectedError.errors).toEqual([error1]);
+  expect(rejectedError.queryData).toEqual({});
 });
