@@ -35,6 +35,9 @@ importers:
       rollup-plugin-dts:
         specifier: ^6.4.0
         version: 6.4.0(rollup@4.59.0)(typescript@5.9.3)
+      ts-add-js-extension:
+        specifier: ^1.6.6
+        version: 1.6.6
       ts-jest:
         specifier: ^29.4.6
         version: 29.4.6(@babel/core@7.29.0)(@jest/transform@30.3.0)(@jest/types@30.3.0)(babel-jest@30.3.0(@babel/core@7.29.0))(jest-util@30.3.0)(jest@30.3.0(@types/node@25.5.0))(typescript@5.9.3)
@@ -3364,6 +3367,10 @@ packages:
   toidentifier@1.0.1:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
     engines: {node: '>=0.6'}
+
+  ts-add-js-extension@1.6.6:
+    resolution: {integrity: sha512-rPOBNrOULi/CjVHraGrDa0vuWDmuMszmIXGNaGe2UGfrBH0/bZWTTsh82uQ+INKp9cJYziKNTCG2knzBlWvW4A==}
+    hasBin: true
 
   ts-api-utils@2.4.0:
     resolution: {integrity: sha512-3TaVTaAv2gTiMB35i3FiGJaRfwb3Pyn/j3m/bfAvGe8FB7CF6u+LMYqYlDh7reQf7UNvoTvdfAqHGmPGOSsPmA==}
@@ -7250,6 +7257,10 @@ snapshots:
       is-number: 7.0.0
 
   toidentifier@1.0.1: {}
+
+  ts-add-js-extension@1.6.6:
+    dependencies:
+      typescript: 5.9.3
 
   ts-api-utils@2.4.0(typescript@5.9.3):
     dependencies:

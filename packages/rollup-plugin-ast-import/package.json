@@ -26,7 +26,7 @@
   "scripts": {
     "build": "pnpm run build:d.ts && pnpm run build:js",
     "build:d.ts": "rollup -c",
-    "build:js": "tsc --project tsconfig.build.json",
+    "build:js": "tsc --project tsconfig.build.json && ts-add-js-extension --dir=dist",
     "check": "tsc --noEmit",
     "clean": "rm -rf coverage dist",
     "prepack": "pnpm run clean && pnpm run check && pnpm run test && pnpm run build",
