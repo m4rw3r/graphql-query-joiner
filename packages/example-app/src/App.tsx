@@ -1,4 +1,3 @@
-import type { RunOperation } from "@awardit/graphql-ast-client";
 import type { ReactElement } from "react";
 
 import { Suspense, useTransition, useState } from "react";
@@ -13,7 +12,7 @@ import {
 import { addDog, getDogs } from "./queries.graphql";
 
 const client = createClient({
-  runOperation: (() => {
+  runOperation: () => {
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve({
@@ -23,7 +22,7 @@ const client = createClient({
         });
       }, 2000);
     });
-  }) as RunOperation,
+  },
   debounce: 0,
 });
 

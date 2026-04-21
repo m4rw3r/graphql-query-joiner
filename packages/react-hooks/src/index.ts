@@ -143,11 +143,7 @@ export function useQuery<Q extends TypedDocumentNode<any, any>>(
   // SAFETY: Value is always an object in a successful GraphQL response
   (value as UseQueryExtra).refetch = refetch;
 
-  // SAFETY: By default we have any here from TypedDocumentNode<any, _>, but
-  // should never happen in practice provided Q is fully typed
-  //
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return value as ResultOf<Q> & UseQueryExtra;
+  return value;
 }
 
 /**
